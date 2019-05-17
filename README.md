@@ -4,7 +4,7 @@ This readme file guides you throught the process of setting up SHERPA-city simul
 for a whole as many cities and scenarios as you want.
 
 ## Preparative steps
-Create a directory for you simulation runs (sc_root). This will be the root directory for all scripts. Download the code (don't forget the point, otherwise the code is in a subdirectory)
+Create a directory for you simulation runs (sc_root). This will be the root directory for all scripts. Download the code by executing the code below in the terminal. (Don't forget the point, otherwise the code is in a subdirectory.)
 
 ```git clone https://github.com/bd77/SHERPA-city.git .```
 
