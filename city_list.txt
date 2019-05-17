@@ -1,0 +1,2 @@
+cityname;lon;lat;country;lon.min;lon.max;lat.min;lat.max
+Krakow;19.947285;50.058019;PL;NA;NA;NA;NA
