@@ -20,18 +20,14 @@
 # Clean up
 rm(list=ls())
 # set the directory of this script as working directory
-code.dir <- dirname(sys.frame(1)$ofile)
-wd <- file.path("..", code.dir)
+wd <- dirname(sys.frame(1)$ofile)
 setwd(wd)
-# This only works when the script is sourced. If not do
-# wd <- "D:/SHERPAcity/NO2_atlas/run20181023/"
-# setwd(wd)
 
 # load libraries and auxiliary functions
 library(raster)
 library(geosphere)
 library(parallel)
-source(file.paht(code.dir,"NO2_atlas_config.R"))
+source("NO2_atlas_config.R")
 source("create_default_extent.R")          # step 1
 source("create_network_shp_utm.R")         # step 1
 source("add_zones.R")                      # step 2
