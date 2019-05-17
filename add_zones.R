@@ -42,7 +42,7 @@ add.zones <- function(city.utm.sldf, zones.shp, cityname) {
   color.list <- c("grey", "green", "orange", "blue")
   lgd.txt <- "Complement"
   i.col <- 1
-  jpeg(paste0(cityname, "/", cityname, "_zones.jpg"), width = 2*480, height = 2*480)
+  jpeg(file.path(city.output.folder, paste0(cityname, "_zones.jpg")), width = 2*480, height = 2*480)
   plot(zoned.network.shp, col = color.list[i.col], asp = 1)
   # To avoid double counting of roads when polygons overlap keep track of the roads
   # that are not in a zone yet.
