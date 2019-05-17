@@ -24,3 +24,4 @@ The script 'NO2_atlas_workflow.R' coordinates the whole process. It sets the dir
 To do/ideas
 - default area of 20x20km: put the default in the config file. 
 - add an example of OTM data to the github
+- parallelize making UTM shape files for each domain and adding zones.
