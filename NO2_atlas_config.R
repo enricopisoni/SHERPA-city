@@ -2,19 +2,19 @@
 # NO2 Atlas config file
 # ----------------------
 
-# The working directory is set in the NO2_atlas_workflow script
-# All paths have to be defined with that reference or as absolute paths
+# The working directory is set the one that contains the 'NO2_atlas_workflow.R' script.
+# All paths have to be defined relative to this folder or as absolute paths.
 
 # file with list of cities 
 city.list.txt <- "city_list.txt"
 city.df <- read.table(city.list.txt, header = TRUE, sep = ";")
 
 # path to the OTM shape files scaled to GAINS national totals
-otm.path <- "/home/degraba/NO2_atlas/OTM_NUTS3_corrected_20181002/"
+otm.path <- "_OpenTransportMap"
 
 # list with boundary boxes of nuts3 areas            
 tag <- "20180723"
-nuts3.bbox.file <- paste0("/home/degraba/NO2_atlas/OTM_NUTS3_corrected_20181002/OTM_nuts3_boundaryboxes_", tag, ".txt")
+nuts3.bbox.file <- paste0("_OpenTransportMap/OTM_nuts3_boundaryboxes_", tag, ".txt")
 nuts3.bbox.df <- read.table(nuts3.bbox.file, sep = ";", header = TRUE)
 nuts3.bbox.df <- na.exclude(nuts3.bbox.df)
 
