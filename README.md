@@ -20,7 +20,8 @@ Adapt the file city_list.txt. Add a line for every city you want to model. The f
 
 Adapt the paths in the config file "NO2_atlas_config.R":
 - The path to city_list.txt
-- The path to the folder with the OpenTransportMap data
+- The path to the folder with the OpenTransportMap data. This is a gigantic dataset, not available on github. The files were downloaded from http://www.opentransportmap.info/download/. This can be automated. The AADT (anual average daily traffic) data in the original shp files were scaled to mach the GAINS national totals. The trafficvol field underestimates national totals.
+- The source kernels location. This is also a big data set with a source kernel (concentration around a 1 kg/hour source, 4 by 4 km and a resolution of 20 meters). The kernels were calculated with IFDM.
 
 ### OpenTransportMap data
 
