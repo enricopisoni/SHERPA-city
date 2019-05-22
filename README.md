@@ -23,7 +23,7 @@ Adapt the paths in the config file "NO2_atlas_config.R":
 - The path to the folder with the OpenTransportMap data. This is a gigantic dataset, not available on github. The files were downloaded from http://www.opentransportmap.info/download/. This can be automated. The AADT (anual average daily traffic) data in the original shp files were scaled to mach the GAINS national totals. The trafficvol field underestimates national totals.
 - The source kernels location. This is also a big data set with a source kernel (concentration around a 1 kg/hour source, 4 by 4 km and a resolution of 20 meters). The kernels were calculated with IFDM.
 
-### OpenTransportMap data
+### NO2 Atlas workflow
 
 
 The script 'NO2_atlas_workflow.R' coordinates the whole process. It sets the directory where it is located as working directory.
