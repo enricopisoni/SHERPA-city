@@ -14,6 +14,8 @@ If the directory is not empty - there might be already some input data - do the 
 
 ```git add remote origin https://github.com/bd77/SHERPA-city.git```
 
+``` git checkout master```
+
 Adapt the file city_list.txt. Add a line for every city you want to model. The format must be the same as the example given on github. When an extent of the domain is not provided (NA) a default domain of 20 by 20 km around the centre is chosen.
 
 Adapt the paths in the config file "NO2_atlas_config.R":
