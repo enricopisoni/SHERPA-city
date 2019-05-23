@@ -46,9 +46,10 @@ getBackground <- function(city.coord, background.info, emis.raster, raster.backg
                                                 data = as.data.frame(raster.utm.coords),
                                                 proj4string = CRS(city.epsg))
       raster.wgs84.spdf <- spTransform(raster.utm.spdf, CRS("+init=epsg:4326"))
-      
+      # data frame with coordinates of raster points and interpollated CTM concentrations
       ctm.conc.df <- data.frame(raster.utm.coords,
-                           conc = extract(pollutant.raster, raster.wgs84.spdf@coords , method="bilinear"))
+                                conc = extract(pollutant.raster, raster.wgs84.spdf@coords, 
+                                               method="bilinear"))
       # convert the ctm concentration data.frame > SpatialPointsDataFrame > RasterLayer
       coordinates(ctm.conc.df) <- ~ x + y # SpatialPointsDataFrame 
       gridded(ctm.conc.df) <- TRUE # SpatialPointsDataFrame  
