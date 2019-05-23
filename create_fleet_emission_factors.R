@@ -26,8 +26,8 @@ library(plyr)
 
 load_fleets_data <- function() {
   # where are the data? (To be moved to the sherpa city config file)
-  fleets.file <- "_fleets/fleets.csv"
-  fleets.data.file <- "_fleets/fleets_data.csv"
+  # fleets.file <- "_fleets/fleets.csv"
+  # fleets.data.file <- "_fleets/fleets_data.csv"
   
   # fleets.df corresponds to the database table 'fleets'
   # fields are: id_fleet, year and country
@@ -105,7 +105,7 @@ create_fleet_emission_factors <- function(scenario.definition.file) {
     default.fleet.df <- eu.fleets.df[eu.fleets.df$country == country & eu.fleets.df$year == year,]
     
     # read the correct configuration
-    fleet.config.file <- paste0("_fleet_configurations/", config, ".csv")
+    fleet.config.file <- file.path(fleet.configuration.folder, paste0(config, ".csv"))
     fleet.config.df <- read.table(fleet.config.file, sep = ",", header = TRUE)
     
     # merge fleet and fleet configuration
