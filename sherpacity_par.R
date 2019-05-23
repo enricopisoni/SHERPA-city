@@ -71,39 +71,32 @@ sherpacity_par <- function(scenario.input.list) {
                                 nrow = 2, ncol = 2,
                                 dimnames=list(c("nc.file", "varname"), c("NO2", "NOx")))
       # retrieve the background at the city location
-      background.matrix <- getBackground(city.coord, background.info)
+      background.matrix <- getBackground(city.coord, background.info, background.no2.nc, no2.varname)
       # add NO
-      no.matrix <- matrix(background.matrix['conc_ugm3', 'NOx'] - background.matrix['conc_ugm3', 'NO2'],
-                          nrow = 1, ncol = 1,
-                          dimnames = list(c("conc_ugm3"), c("NO")))
-      background.matrix <- cbind(background.matrix, no.matrix)
+      background.list[["NO"]] <- background.list[["NOx"]] - background.list[["NO2"]]
+      
     # NOx not available, NO and NO2 available (the case of Emep)
     } else if (is.na(nox.varname) & (!(is.na(no.varname)) | !(is.na(no2.varname)))) {
       background.info <- matrix(c(background.no.nc, no.varname, background.no2.nc, no2.varname),
                                 nrow = 2, ncol = 2,
                                 dimnames=list(c("nc.file", "varname"), c("NO", "NO2")))
       # retrieve the background at the city location
-      background.matrix <- getBackground(city.coord, background.info)
-      # add NO
-      nox.matrix <- matrix(background.matrix['conc_ugm3', 'NO'] + background.matrix['conc_ugm3', 'NO2'],
-                          nrow = 1, ncol = 1,
-                          dimnames = list(c("conc_ugm3"), c("NOx")))
-      background.matrix <- cbind(background.matrix, nox.matrix)
+      background.list <- getBackground(city.coord, background.info, emis.raster, raster.background)
+      # add NOx
+      background.list[["NOx"]] <- background.list[["NO"]] + background.list[["NO2"]]
+      
     } else if (is.na(no2.varname) & (!(is.na(no.varname)) | !(is.na(nox.varname)))) {
       background.info <- matrix(c(background.no.nc, no.varname, background.nox.nc, nox.varname),
                                 nrow = 2, ncol = 2,
                                 dimnames=list(c("nc.file", "varname"), c("NO", "NOx")))
       # retrieve the background at the city location
-      background.matrix <- getBackground(city.coord, background.info)
-      # add NO
-      no2.matrix <- matrix(background.matrix['conc_ugm3', 'NOx'] - background.matrix['conc_ugm3', 'NO'],
-                           nrow = 1, ncol = 1,
-                           dimnames = list(c("conc_ugm3"), c("NO2")))
-      background.matrix <- cbind(background.matrix, no2.matrix)
+      background.matrix <- getBackground(city.coord, background.info, emis.raster, raster.background)
+      # add NO2
+      background.list[["NO2"]] <- background.list[["NOx"]] - background.list[["NO"]]
+
     } else {
       # the background is assumed zero if 2 or 3 variables are NA
-      background.matrix <- matrix(rep(0, 3), nrow = 1, ncol = 3,
-                           dimnames = list(c("conc_ugm3"), c("NO2", "NO", "NOx")))
+      background.list <- list("NO2"=0, "NO"=0, "NOx"=0)
     }
     
   # -------- PM2.5 -----------  
@@ -114,7 +107,7 @@ sherpacity_par <- function(scenario.input.list) {
     # retrieve the background at the city location
     background.info <- matrix(c(background.pm.nc, pm25.varname), nrow=2, ncol=1,
                               dimnames=list(c("nc.file", "varname"), c("PM25")))
-    background.matrix <- getBackground(city.coord, background.info)
+    background.list <- getBackground(city.coord, background.info, emis.raster, raster.background)
   
   # -------- PM10 ------------  
   } else if (pollutant == 'PM10') {
@@ -124,7 +117,7 @@ sherpacity_par <- function(scenario.input.list) {
     # retrieve the background at the city location
     background.info <- matrix(c(background.pm.nc, pm10.varname), nrow=2, ncol=1,
                               dimnames=list(c("nc.file", "varname"), c("PM10")))
-    background.matrix <- getBackground(city.coord, background.info)
+    background.list <- getBackground(city.coord, background.info, emis.raster, raster.background)
     
   } else {
     print(paste("unknown pollutant:", pollutant))
@@ -137,7 +130,7 @@ sherpacity_par <- function(scenario.input.list) {
   
   # focal applies the receptor kernel as a moving average over the emission field
   # conc.raster gives to local contribution to the concentration
-  conc.raster <- focal(emis.raster, rk.matrix , pad = TRUE, padValue = 0, na.rm=TRUE)
+  conc.raster <- focal(emis.raster, rk.matrix, pad = TRUE, padValue = 0, na.rm=TRUE)
   conc.raster[is.na(conc.raster)] <- 0
   # plot(conc.raster)
   
@@ -145,8 +138,15 @@ sherpacity_par <- function(scenario.input.list) {
     
     # calculate local NOx as NOx.background - average local NOx over domain + local NOx
     # !!! Also here na.rm=TRUE because NAs are still possible if there are big areas without emissions (sea)
-    nox.local.mean <- mean(values(conc.raster), na.rm = TRUE)
-    nox.background <- background.matrix["conc_ugm3", "NOx"]
+    if (raster.background == FALSE) {
+      nox.local.mean <- mean(values(conc.raster), na.rm = TRUE)
+    } else if (raster.background == FALSE) {
+      # smooth the local contribution at about 7x7 km
+      nox.local.mean <- focal(conc.raster, w = matrix(1, nrow = 351, ncol = 351), pad = TRUE, padValue = 0, na.rm=TRUE)
+      
+    }
+    
+    nox.background <- background.list$NOx
     nox.raster <- conc.raster - nox.local.mean + nox.background
     
     # calculate local NO2 fraction
