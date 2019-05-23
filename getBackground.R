@@ -5,31 +5,63 @@
 
 library(raster)
 
-getBackground <- function(city.coord, background.info) {
+getBackground <- function(city.coord, background.info, emis.raster, raster.background) {
+  
   # Function to retrieve background NO2, NO and O3 concentrations for a given point (lon, lat) from a netcdf file
   # input
   # city.coord: 1 row-2 col matrix with longitude and latitude of the city centre
   # background.info: matrix with 3 columns (NO2, NO, O3) and 2 rows (path to netcf with background and varname)
-  
+  # Two possibilities:
+  #   1) raster.background=TRUE
+  #      The result is a raster at 20x20 m resultion interpollated from the background netcdf
+  #   2) raster.background=FALSE
+  #      The result is a scalar interpollated from the background netcdf (centre)
   # output:
-  # background.matrix: 3 colunms ((NO2, NO, O3)), 1 row with concentrations in ug/m3 yearly average
+  # background.list: n.pollutant elements, scalar or raster depending on 'raster.background'
+  # with concentrations in ug/m3 yearly average.
+  
   pollutant.list <- dimnames(background.info)[[2]]
   n.pollutants <- length(pollutant.list)
-  background.matrix <- matrix(rep(NA, n.pollutants), 
-                              ncol=n.pollutants, nrow=1, 
-                              dimnames=list(c("conc_ugm3"), pollutant.list))
+  background.list <- list()
   
-  # pollutant <- "NOx" # for testing
-  for (pollutant in pollutant.list) {
-    bg.nc <- background.info["nc.file", pollutant]
-    pollutant.raster <- raster(bg.nc, varname=background.info["varname", pollutant])
-    pol.bg.city <- extract(pollutant.raster, city.coord, method="bilinear")
-    background.matrix["conc_ugm3", pollutant] <- pol.bg.city
+  if (raster.background == FALSE) {
+    # return one value per pollutant, interpollated from the background netcdf
+    for (pollutant in pollutant.list) {
+      bg.nc <- background.info["nc.file", pollutant]
+      pollutant.raster <- raster(bg.nc, varname=background.info["varname", pollutant])
+      pol.bg.city <- extract(pollutant.raster, city.coord, method="bilinear")
+      background.list[[pollutant]] <- pol.bg.city
+    }
+  } else if (raster.background == TRUE) {
+    # return a full raster per pollutant, interpollated from the background netcdf
+    for (pollutant in pollutant.list) {
+      bg.nc <- background.info["nc.file", pollutant]
+      pollutant.raster <- raster(bg.nc, varname=background.info["varname", pollutant])
+      
+      city.epsg <- long2UTM(city.coord[1,"lon"])
+      emis.raster[is.na(emis.raster)] <- 0 # this makes sure that also points with NA are in the coords list
+      raster.utm.coords <- rasterToPoints(emis.raster)
+      raster.utm.coords <- raster.utm.coords[,c('x', 'y')]
+      raster.utm.spdf <- SpatialPointsDataFrame(coords = raster.utm.coords,
+                                                data = as.data.frame(raster.utm.coords),
+                                                proj4string = CRS(city.epsg))
+      raster.wgs84.spdf <- spTransform(raster.utm.spdf, CRS("+init=epsg:4326"))
+      
+      ctm.conc.df <- data.frame(raster.utm.coords,
+                           conc = extract(pollutant.raster, raster.wgs84.spdf@coords , method="bilinear"))
+      # convert the ctm concentration data.frame > SpatialPointsDataFrame > RasterLayer
+      coordinates(ctm.conc.df) <- ~ x + y # SpatialPointsDataFrame 
+      gridded(ctm.conc.df) <- TRUE # SpatialPointsDataFrame  
+      ctm.conc.raster <- raster(ctm.conc.df) # RasterLayer
+      # add the CTM concentration raster to the output list
+      background.list[[pollutant]] <- ctm.conc.raster
+    }
   }
-  return(background.matrix)
+  return(background.list)
 }
 
 # for testing
+# emis.raster <- raster("D:/SHERPAcity/NO2_atlas/smooth_background/AllCities/Ljubljana/results/basecase/emis_NOx.asc")
 
 if (1 == 0) {
   # test example with LOTOS background
