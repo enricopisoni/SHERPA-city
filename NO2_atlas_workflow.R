@@ -53,17 +53,17 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   }
   
   # folder and filename of the UTM shape file with the network (maybe it exists, maybe not)
-  dsn.city.utm.shp <- city.output.folder
+  dsn.city.utm.shp <- file.path(cities.network.folder, cityname)
   layer.city.utm.shp <- paste0("traffic_roadlinks_", cityname)
-  city.utm.shp <- paste0(dsn.city.utm.shp, "/", layer.city.utm.shp, ".shp")
+  city.utm.shp <- file.path(dsn.city.utm.shp, paste0(layer.city.utm.shp, ".shp"))
 
   # to avoid wrong behaviour with previous loop, remove the SpatialLinesDataFrame of the network
   if ("city.utm.sldf" %in% ls()) { rm(city.utm.sldf) }
   
   # folder and filename of the UTM shape file with the network and zones (maybe it exists, maybe not)
-  dsn.zoned.city.utm.shp <- city.output.folder
+  dsn.zoned.city.utm.shp <- file.path(cities.network.folder, cityname)
   layer.city.zoned.utm.shp <- paste0("traffic_roadlinks_zones_", cityname)
-  zoned.city.utm.shp <- paste0(dsn.zoned.city.utm.shp, "/", layer.city.zoned.utm.shp, ".shp")
+  zoned.city.utm.shp <- file.path(dsn.zoned.city.utm.shp, paste0(layer.city.zoned.utm.shp, ".shp"))
   
   # to avoid wrong behaviour with previous loop, remove the SpatialLinesDataFrame of the network
   if ("zoned.city.utm.sldf" %in% ls()) { rm(zoned.city.utm.sldf) }
@@ -176,7 +176,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # ---------------------------------------------------
   
   # see fast_gridding.py
-  gridded.network.file <- paste0(city.output.folder, "/", cityname, "_grid_tbl.txt")
+  gridded.network.file <- file.path(cities.network.folder, cityname, paste0(cityname, "_grid_tbl.txt"))
   
   # Step 4: Calculate fleet emission factors
   # ----------------------------------------
@@ -210,6 +210,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     # read the emission factors
     scenario.efs.df <- read.table(emission.factors.file, sep = ",", header = TRUE)
     scenario.list <- as.vector(unique(scenario.efs.df$scenario_name))
+    n.scenarios <- length(scenario.list)
     # read the gridded network
     gridded.network.df <- read.table(gridded.network.file, sep = ";", header = TRUE, quote = "")
 
@@ -219,8 +220,8 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     
     # Calculate the number of cores
     no_cores <- detectCores()
-    # Initiate cluster
-    cl <- makeCluster(no_cores-1) # no_cores
+    # Initiate cluster. Never take more cores than scenarios and one less than available on the machine
+    cl <- makeCluster(min(no_cores-1, n.scenarios)) 
     # add common variables for all scenarios to the cluster environment
     clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder", "AADT.field"))
     # throw the runs on the cluster
