@@ -40,3 +40,4 @@ The script 'NO2_atlas_workflow.R' coordinates the whole process. First it sets t
 - default area of 20x20km: put the default in the config file. 
 - add an example of OTM data to the github
 - parallelize making UTM shape files for each domain and adding zones.
+- Add the possibility to define paths to the network file, zoned network file and the zones shape files. This would avoid copying a lot of data when the same network and zones are used with different background, different code,...
