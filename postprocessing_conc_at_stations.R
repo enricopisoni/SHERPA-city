@@ -63,7 +63,7 @@ for (cityname in cities.list) {
   
   # open the road network of the city
   # folder and filename of the UTM shape file with the network and zones
-  dsn.zoned.city.utm.shp <- city.output.folder
+  dsn.zoned.city.utm.shp <- file.path(cities.network.folder, cityname)
   layer.city.zoned.utm.shp <- paste0("traffic_roadlinks_zones_", cityname)
   zoned.city.utm.shp <- paste0(dsn.zoned.city.utm.shp, "/", layer.city.zoned.utm.shp, ".shp")
   # read the network as a SpatialLinesDataFrame
@@ -159,9 +159,9 @@ for (cityname in cities.list) {
         total.no2.raster[total.no2.raster>top.level] <- top.level + 0.001
         
         # open the zones file
-        dsn.zones.shp <- paste0(city.output.folder, "/zones_", cityname) 
+        dsn.zones.shp <- file.path(cities.zones.folder, cityname, paste0("/zones_", cityname)) 
         layer.zones.shp <- paste0("zones_", cityname)
-        zones.shp <- paste0(dsn.zones.shp, "/", layer.zones.shp, ".shp")
+        zones.shp <- file.path(dsn.zones.shp, paste0(layer.zones.shp, ".shp"))
         zones.spdf <- readOGR(dsn = dsn.zones.shp, layer = layer.zones.shp)
         zones.utm.spdf <- spTransform(zones.spdf, city.epsg) # city.projection  
         
