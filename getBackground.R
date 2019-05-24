@@ -19,6 +19,7 @@
 #    - raster difference
 
 library(raster)
+library(geosphere)
 
 getBackground <- function(city.coord, background.info, emis.raster, raster.background) {
   
@@ -46,6 +47,10 @@ getBackground <- function(city.coord, background.info, emis.raster, raster.backg
       pollutant.raster <- raster(bg.nc, varname=background.info["varname", pollutant])
       pol.bg.city <- extract(pollutant.raster, city.coord, method="bilinear")
       background.list[[pollutant]] <- pol.bg.city
+      
+      # add the pollutant concentrations of the cell near the centre point (for the NOx split calculation)
+      conc.centre <- extract(pollutant.raster, city.coord, method="simple")
+      background.list[[paste0(pollutant, "_centre")]] <- conc.centre
     }
   } else if (raster.background == TRUE) {
     # return a full raster per pollutant, interpollated from the background netcdf
@@ -69,9 +74,21 @@ getBackground <- function(city.coord, background.info, emis.raster, raster.backg
       coordinates(ctm.conc.df) <- ~ x + y # SpatialPointsDataFrame 
       gridded(ctm.conc.df) <- TRUE # SpatialPointsDataFrame  
       ctm.conc.raster <- raster(ctm.conc.df) # RasterLayer
+      
       # add the CTM concentration raster to the output list
       background.list[[pollutant]] <- ctm.conc.raster
+      
+      # add the pollutant concentrations of the cell near the centre point (for the NOx split calculation)
+      conc.centre <- extract(pollutant.raster, city.coord, method="simple")
+      background.list[[paste0(pollutant, "_centre")]] <- conc.centre
     }
+    # also add dx and dy to the output object.These values will be used to smooth the local contribution
+    dlon <- xres(pollutant.raster)
+    dlat <- yres(pollutant.raster)
+    dx <- distGeo(city.coord, city.coord + c(dlon, 0)) # meters
+    dy <- distGeo(city.coord, city.coord + c(0, dlat))
+    background.list$dx <- dx
+    background.list$dy <- dy
   }
   return(background.list)
 }
