@@ -74,6 +74,7 @@ sherpacity_par <- function(scenario.input.list) {
       background.matrix <- getBackground(city.coord, background.info, background.no2.nc, no2.varname)
       # add NO
       background.list[["NO"]] <- background.list[["NOx"]] - background.list[["NO2"]]
+      background.list[["NO_centre"]] <- background.list[["NOx_centre"]] - background.list[["NO2"]]
       
     # NOx not available, NO and NO2 available (the case of Emep)
     } else if (is.na(nox.varname) & (!(is.na(no.varname)) | !(is.na(no2.varname)))) {
@@ -84,6 +85,7 @@ sherpacity_par <- function(scenario.input.list) {
       background.list <- getBackground(city.coord, background.info, emis.raster, raster.background)
       # add NOx
       background.list[["NOx"]] <- background.list[["NO"]] + background.list[["NO2"]]
+      background.list[["NOx_centre"]] <- background.list[["NO_centre"]] + background.list[["NO2_centre"]]
       
     } else if (is.na(no2.varname) & (!(is.na(no.varname)) | !(is.na(nox.varname)))) {
       background.info <- matrix(c(background.no.nc, no.varname, background.nox.nc, nox.varname),
@@ -93,10 +95,11 @@ sherpacity_par <- function(scenario.input.list) {
       background.matrix <- getBackground(city.coord, background.info, emis.raster, raster.background)
       # add NO2
       background.list[["NO2"]] <- background.list[["NOx"]] - background.list[["NO"]]
+      background.list[["NO2_centre"]] <- background.list[["NOx_centre"]] - background.list[["NO_centre"]]
 
     } else {
       # the background is assumed zero if 2 or 3 variables are NA
-      background.list <- list("NO2"=0, "NO"=0, "NOx"=0)
+      background.list <- list("NO2" = 0, "NO" = 0, "NOx" = 0)
     }
     
   # -------- PM2.5 -----------  
@@ -123,7 +126,19 @@ sherpacity_par <- function(scenario.input.list) {
     print(paste("unknown pollutant:", pollutant))
   }
   
-  write.table(background.matrix, file.path(output.path, 'background.txt'), quote = FALSE)
+  # if the low resolution part from the CTM are numbers write a file, if it is a high
+  # resolution raster plot the raster.
+  if (raster.background == FALSE) {
+    write.table(background.matrix, file.path(output.path, 'background.txt'), quote = FALSE)
+  } else if (raster.background == TRUE) {
+    for (varname in names(background.list)) {
+      if (class(background.list[[varname]]) == "RasterLayer") {
+        png(file.path(output.path, paste0('CTM_background_', varname, '.png')))
+        plot(background.list[[varname]], main = paste(varname, "from the CTM"))
+        dev.off()
+      }
+    }
+  }
   
   # Calculate concentrations
   # ------------------------
@@ -140,17 +155,26 @@ sherpacity_par <- function(scenario.input.list) {
     # !!! Also here na.rm=TRUE because NAs are still possible if there are big areas without emissions (sea)
     if (raster.background == FALSE) {
       nox.local.mean <- mean(values(conc.raster), na.rm = TRUE)
-    } else if (raster.background == FALSE) {
+    } else if (raster.background == TRUE) {
       # smooth the local contribution at about 7x7 km
-      nox.local.mean <- focal(conc.raster, w = matrix(1, nrow = 351, ncol = 351), pad = TRUE, padValue = 0, na.rm=TRUE)
-      
+      ncol <- round(background.list$dx / 20)
+      if (ncol %% 2 == 0) {ncol <- ncol + 1}
+      nrow <- round(background.list$dy / 20)
+      if (nrow %% 2 == 0) {nrow <- nrow + 1}
+      nox.local.mean <- focal(conc.raster, 
+                              w = matrix(1/ncol/nrow, nrow = nrow, ncol = ncol), 
+                              pad = TRUE, padValue = NA, na.rm=TRUE)
+      png(file.path(output.path, paste0("local_smoothed_NOx.png")))
+      plot(nox.local.mean, main = "Smoothed local NOx")
+      dev.off()
     }
-    
+    # get the background from the CTM: an single number or raster
     nox.background <- background.list$NOx
-    nox.raster <- conc.raster - nox.local.mean + nox.background
+    # total NOx = Background corrected reduced with smoothed local (number or raser) plus local NOx
+    nox.raster <- nox.background - nox.local.mean + conc.raster
     
     # calculate local NO2 fraction
-    local.romberg.coefs <- getRombergCoefs(background.matrix["conc_ugm3", "NO"], background.matrix["conc_ugm3", "NO2"])
+    local.romberg.coefs <- getRombergCoefs(background.list[["NO_centre"]], background.list[["NO2_centre"]])
     fno2.raster <- raster(nox.raster)
     values(fno2.raster) <- Romberg(values(nox.raster), local.romberg.coefs$a, local.romberg.coefs$b)
   
@@ -161,7 +185,6 @@ sherpacity_par <- function(scenario.input.list) {
     writeRaster(no2.raster, file.path(output.path, 'NO2_total_conc.asc'), overwrite = TRUE)
     writeRaster(nox.raster, file.path(output.path, 'NOx_total_conc.asc'), overwrite = TRUE)
     writeRaster(conc.raster, file.path(output.path, 'NOx_local_conc.asc'), overwrite = TRUE)
-    
   }
   
   if (pollutant %in% c("PM25", "PM10")) {
