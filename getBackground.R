@@ -2,6 +2,21 @@
 # function to retrive background concentrations from a netcdf
 # ------------------------------------------------------------
 
+# background = low resolution concentration of the CTM
+# This low resolution concentration contains a traffic part an other contributions
+# We want to replace the traffic part at low resolution with a traffic part at high
+# resolution. How?
+# 1) Get something from the CTM:
+#    - interpollated value at the centre of the domain
+#    - interpollated value at every grid point at high resolution
+#    - the previous one averaged over the domain
+# 2) Remove the traffic from the low resolution concentration:
+#    - single CTM value minus average local traffic concentration (fast)
+#    - CTM values at eacht high res grid point minus smoothed local concentration.
+#      Smoothed because that is what the CTM does with all concentrations
+# 3) Add local concentration to:
+#    - single value difference
+#    - raster difference
 
 library(raster)
 
