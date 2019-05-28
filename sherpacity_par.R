@@ -36,6 +36,7 @@ sherpacity_par <- function(scenario.input.list) {
   emission.raster.file <- scenario.input.list$emis.raster.file
   pollutant <- scenario.input.list$pollutant
   output.path <- scenario.input.list$output.path
+  raster.background <- scenario.input.list$raster.background
 
   # Run the configuration file
   # ----------------------------
