@@ -267,6 +267,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # config file 'NO2_atlas_config.R'.
 
   if (file.exists(gridded.network.file) & file.exists(emission.factors.file)) {
+    
     print(paste0("Creating concentration rasters for ", cityname))
           
     input.list <- list()
@@ -277,20 +278,21 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
                               "city.coords" = city.coords,
                               "emis.raster.file" = file.path(results.folder, scenario.list[i], paste0("emis_", pollutant, ".asc")),
                               "pollutant" = if(pollutant=="NOx") {"NO2"} else {pollutant},
-                              "output.path" = file.path(results.folder, scenario.list[i]))
+                              "output.path" = file.path(results.folder, scenario.list[i]),
+                              "raster.background" = raster.background)
     }
     # for testing
-    # sherpacity_par(input.list[[1]])
+    sherpacity_par(input.list[[1]])
     
-    # Calculate the number of cores
-    no_cores <- detectCores()
-    # Initiate cluster with as many cores as scenarios if possible, but never more than the
-    # total number of cores minus 1
-    cl <- makeCluster(min(no_cores-1, n.scenarios))
-    # throw the runs on the cluster
-    parLapply(cl, input.list, sherpacity_par)
-    # stop the cluster
-    stopCluster(cl)
+    # # Calculate the number of cores
+    # no_cores <- detectCores()
+    # # Initiate cluster with as many cores as scenarios if possible, but never more than the
+    # # total number of cores minus 1
+    # cl <- makeCluster(min(no_cores-1, n.scenarios))
+    # # throw the runs on the cluster
+    # parLapply(cl, input.list, sherpacity_par)
+    # # stop the cluster
+    # stopCluster(cl)
 
     # # loop over all scenarios (sequential)
     # for (scenario_name in scenario.list) {
