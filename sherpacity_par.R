@@ -58,6 +58,9 @@ sherpacity_par <- function(scenario.input.list) {
   
   # Read the emission raster file
   # ------------------------------
+  # !!!!!!!!!!!!!!!!!!!!!! WARNING DOUBLE EMISSIONS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  # emis.raster <- 2*raster(emission.raster.file)
+  # !!!!!!!!!!!!!!!!!!!!!! WARNING DOUBLE EMISSIONS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   emis.raster <- raster(emission.raster.file)
   
   # Get the background concentrations
