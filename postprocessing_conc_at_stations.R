@@ -278,30 +278,30 @@ for (cityname in cities.list) {
                 row.names = F, quote = F, sep = ",")
     
     # bar plots of NOx per zone, road type and fleet sub-category
-    png(paste0("_postprocessing/", cityname, "_totalNOx_SA_barplots.png"), height = 480, width = 480/3*max(n.stations,3))
-    p <- ggplot(results.at.stations.df[results.at.stations.df$SA.type != "basecase",], 
-                aes(x=SA.type, y=NOx, fill = scenario.name)) 
-    p <- p + geom_col() + facet_grid(~ AQStationName + StationLetter)
-    p <- p + scale_fill_manual(values=c("basecase"="black", "motorway"="red", "nonurban"="blue", "urban"="green",
-                                        "smallLEZ"="orange", "bigLEZ"="yellow", "Complement"="purple",
-                                        "Truck"="black", "Bus"="blue", "Van"="yellow",
-                                        "DieselCarE03"="firebrick4", "DieselCarE4"="firebrick3", "DieselCarE5"="firebrick2", "DieselCarE6"="darkorange",
-                                        "GasolineCar"="green", "OtherCar"="blue", "MoMo"="pink", "background"="grey"))
-    print(p)
-    dev.off()
+    # png(paste0("_postprocessing/", cityname, "_totalNOx_SA_barplots.png"), height = 480, width = 480/3*max(n.stations,3))
+    # p <- ggplot(results.at.stations.df[results.at.stations.df$SA.type != "basecase",], 
+    #             aes(x=SA.type, y=NOx, fill = scenario.name)) 
+    # p <- p + geom_col() + facet_grid(~ AQStationName + StationLetter)
+    # p <- p + scale_fill_manual(values=c("basecase"="black", "motorway"="red", "nonurban"="blue", "urban"="green",
+    #                                     "smallLEZ"="orange", "bigLEZ"="yellow", "Complement"="purple",
+    #                                     "Truck"="black", "Bus"="blue", "Van"="yellow",
+    #                                     "DieselCarE03"="firebrick4", "DieselCarE4"="firebrick3", "DieselCarE5"="firebrick2", "DieselCarE6"="darkorange",
+    #                                     "GasolineCar"="green", "OtherCar"="blue", "MoMo"="pink", "background"="grey"))
+    # print(p)
+    # dev.off()
 
-    # bar plots of NOx per zone, road type and fleet sub-category
-    png(paste0("_postprocessing/", cityname, "_localNOx_SA_barplots.png"), height = 480, width = 480/3*max(n.stations,3))
-    p <- ggplot(results.at.stations.df[!(results.at.stations.df$scenario.name == "background" | results.at.stations.df$SA.type == "basecase"),], 
-                aes(x=SA.type, y=NOx, fill = scenario.name)) 
-    p <- p + geom_col() + facet_grid(~ AQStationName + StationLetter)
-    p <- p + scale_fill_manual(values=c("basecase"="black", "motorway"="red", "nonurban"="blue", "urban"="green",
-                                        "smallLEZ"="orange", "bigLEZ"="yellow", "Complement"="purple",
-                                        "Truck"="black", "Bus"="blue", "Van"="yellow",
-                                        "DieselCarE03"="firebrick4", "DieselCarE4"="firebrick3", "DieselCarE5"="firebrick2", "DieselCarE6"="darkorange",
-                                        "GasolineCar"="green", "OtherCar"="blue", "MoMo"="pink", "background"="grey"))
-    print(p)
-    dev.off()
+    # # bar plots of NOx per zone, road type and fleet sub-category
+    # png(paste0("_postprocessing/", cityname, "_localNOx_SA_barplots.png"), height = 480, width = 480/3*max(n.stations,3))
+    # p <- ggplot(results.at.stations.df[!(results.at.stations.df$scenario.name == "background" | results.at.stations.df$SA.type == "basecase"),], 
+    #             aes(x=SA.type, y=NOx, fill = scenario.name)) 
+    # p <- p + geom_col() + facet_grid(~ AQStationName + StationLetter)
+    # p <- p + scale_fill_manual(values=c("basecase"="black", "motorway"="red", "nonurban"="blue", "urban"="green",
+    #                                     "smallLEZ"="orange", "bigLEZ"="yellow", "Complement"="purple",
+    #                                     "Truck"="black", "Bus"="blue", "Van"="yellow",
+    #                                     "DieselCarE03"="firebrick4", "DieselCarE4"="firebrick3", "DieselCarE5"="firebrick2", "DieselCarE6"="darkorange",
+    #                                     "GasolineCar"="green", "OtherCar"="blue", "MoMo"="pink", "background"="grey"))
+    # print(p)
+    # dev.off()
     
     # measurements vs model
     meas.vs.model.df <- results.at.stations.df[results.at.stations.df$scenario.name == "basecase",]
