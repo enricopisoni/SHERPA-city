@@ -33,6 +33,7 @@ source("create_network_shp_utm.R")         # step 1
 source("add_zones.R")                      # step 2
 source("check_zones_overlap.R")            # step 2
 source("create_fleet_configurations.R")    # step 4
+source("create_scenario_definition.R")     # step 4
 source("create_fleet_emission_factors.R")  # step 4
 source("create_gridded_emissions.R")       # step 5
 source("sherpacity_par.R")                 # step 6
@@ -185,11 +186,12 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # Step 4: Calculate fleet emission factors
   # ----------------------------------------
   
-  # scenario definition file
+  # Create scenario definition file from a template
+  create.scenario.definition(scenario.template.file, city.df, cityname, fleet.year, city.output.folder)
   # 5 columns: scenario_name,zone_name,default_fleet_country,default_fleet_year,fleet_configuration
-  scenario.definition.file <- paste0(city.output.folder, "/", cityname, "_scenario_definition.csv")
+  scenario.definition.file <- file.path(city.output.folder, paste0(cityname, "_scenario_definition.csv"))
   # emission factor file
-  emission.factors.file <- paste0(city.output.folder, "/", cityname, "_emission_factors.csv")
+  emission.factors.file <- file.path(city.output.folder, paste0(cityname, "_emission_factors.csv"))
   
   if (file.exists(scenario.definition.file)) {
     if (!file.exists(emission.factors.file)) {
