@@ -32,9 +32,13 @@ source("create_default_extent.R")          # step 1
 source("create_network_shp_utm.R")         # step 1
 source("add_zones.R")                      # step 2
 source("check_zones_overlap.R")            # step 2
+source("create_fleet_configurations.R")    # step 4
 source("create_fleet_emission_factors.R")  # step 4
 source("create_gridded_emissions.R")       # step 5
 source("sherpacity_par.R")                 # step 6
+
+# Create fleet configurations
+create.fleet.configs(fleet.configuration.folder, fleet.config.overview.file)
 
 # loop over all the cities
 for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
