@@ -20,6 +20,7 @@
 
 library(raster)
 library(geosphere)
+source("long2UTM.R")
 
 getBackground <- function(city.coord, background.info, emis.raster, raster.background) {
   
