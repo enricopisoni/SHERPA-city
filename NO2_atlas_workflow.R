@@ -20,7 +20,8 @@
 # Clean up
 rm(list=ls())
 # set the directory of this script as working directory
-wd <- dirname(sys.frame(1)$ofile)
+# wd <- dirname(sys.frame(1)$ofile)
+wd <- "D:/SHERPAcity/NO2_atlas/run20190724"
 setwd(wd)
 
 # load libraries and auxiliary functions
@@ -37,6 +38,7 @@ source("create_scenario_definition.R")     # step 4
 source("create_fleet_emission_factors.R")  # step 4
 source("create_gridded_emissions.R")       # step 5
 source("sherpacity_par.R")                 # step 6
+source("long2UTM.R")
 
 # Create fleet configurations
 create.fleet.configs(fleet.configuration.folder, fleet.config.overview.file)
@@ -273,7 +275,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # config file 'NO2_atlas_config.R'.
 
   if (file.exists(gridded.network.file) & file.exists(emission.factors.file)) {
-    
+
     print(paste0("Creating concentration rasters for ", cityname))
           
     input.list <- list()
@@ -288,17 +290,17 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
                               "raster.background" = raster.background)
     }
     # for testing
-    sherpacity_par(input.list[[1]])
+    # sherpacity_par(input.list[[3]])
     
-    # # Calculate the number of cores
-    # no_cores <- detectCores()
-    # # Initiate cluster with as many cores as scenarios if possible, but never more than the
-    # # total number of cores minus 1
-    # cl <- makeCluster(min(no_cores-1, n.scenarios))
-    # # throw the runs on the cluster
-    # parLapply(cl, input.list, sherpacity_par)
-    # # stop the cluster
-    # stopCluster(cl)
+    # Calculate the number of cores
+    no_cores <- detectCores()
+    # Initiate cluster with as many cores as scenarios if possible, but never more than the
+    # total number of cores minus 1
+    cl <- makeCluster(min(no_cores-1, n.scenarios))
+    # throw the runs on the cluster
+    parLapply(cl, input.list, sherpacity_par)
+    # stop the cluster
+    stopCluster(cl)
 
     # # loop over all scenarios (sequential)
     # for (scenario_name in scenario.list) {
