@@ -6,6 +6,7 @@
 rm(list=ls())
 # set the directory of this script as working directory
 wd <- dirname(sys.frame(1)$ofile)
+wd <- "D:/SHERPAcity/NO2_atlas/run20190515_emep"
 setwd(wd)
 
 library(raster)
@@ -51,7 +52,7 @@ dev.off()
 cor.emis <- cor(chimere.raster.points[,"NOx"], emep.NOx.at.chimere, method = "pearson")
 
 
-# cityname <- "Wroclaw"
+# cityname <- "Sofia"
 nox.emission.overview.df <- data.frame()
 for (cityname in as.vector(city.df$cityname)) {
   print(cityname)
@@ -94,12 +95,14 @@ for (cityname in as.vector(city.df$cityname)) {
   }
 }
 
+# write and plot output
 output.dir <- file.path(wd, "_postprocessing", "NOx_emission_comparison")
-if (!(dir.exists(output.dir))) {create.dir(file.path(wd, "_postprocessing", "NOx_emission_comparison"))}
+if (!(dir.exists(output.dir))) {dir.create(output.dir)}
 write.table(nox.emission.overview.df, file = file.path(output.dir, "NOx_Emissions_comparison.csv"),
             sep = ",", row.names = F)
 
-# chimere
+# chimere VS sherpa city
+png(file.path(output.dir, "NOxEmis_CHIMERE_vs_SHERPAcity.png"))
 plot(nox.emission.overview.df$nox.total.sherpacity.tonperyear,
      nox.emission.overview.df$nox.total.chimere.tonperyear)
 abline(a=0, b=1)
@@ -109,8 +112,10 @@ text(x = nox.emission.overview.df$nox.total.sherpacity.tonperyear,
 cor(nox.emission.overview.df$nox.total.sherpacity.tonperyear,
     nox.emission.overview.df$nox.total.chimere.tonperyear)
 lm(data = nox.emission.overview.df, formula = nox.total.chimere.tonperyear ~ 0 + nox.total.sherpacity.tonperyear)
+dev.off()
 
-# emep
+# emep VS sherpa city
+png(file.path(output.dir, "NOxEmis_EMEP_vs_SHERPAcity.png"))
 plot(nox.emission.overview.df$nox.total.sherpacity.tonperyear,
      nox.emission.overview.df$nox.total.emep.tonperyear)
 abline(a=0, b=1)
@@ -119,8 +124,13 @@ text(x = nox.emission.overview.df$nox.total.sherpacity.tonperyear,
      labels = nox.emission.overview.df$cityname)
 cor(nox.emission.overview.df$nox.total.sherpacity.tonperyear,
      nox.emission.overview.df$nox.total.emep.tonperyear)
-lm(data = nox.emission.overview.df, formula = nox.total.emep.tonperyear ~ 0 + nox.total.sherpacity.tonperyear)
+lm.emep.sc <- lm(data = nox.emission.overview.df, 
+                 formula = nox.total.emep.tonperyear ~ nox.total.sherpacity.tonperyear)
+summary(lm.emep.sc)
+dev.off()
 
+# EMEP versus CHIMERE
+png(file.path(output.dir, "NOxEmis_EMEP_vs_CHIMERE.png"))
 plot(nox.emission.overview.df$nox.total.chimere.tonperyear,
      nox.emission.overview.df$nox.total.emep.tonperyear)
 abline(a=0, b=1)
@@ -130,3 +140,5 @@ text(x = nox.emission.overview.df$nox.total.chimere.tonperyear,
 cor(nox.emission.overview.df$nox.total.chimere.tonperyear,
     nox.emission.overview.df$nox.total.emep.tonperyear)
 lm(data = nox.emission.overview.df, formula = nox.total.chimere.tonperyear ~ 0 + nox.total.emep.tonperyear)
+dev.off()
+
