@@ -8,6 +8,12 @@
 # wd <- "D:/SHERPAcity/sherpacitymodel/"
 # setwd(wd)
 
+# !!!!!!!!!!!!!!!!!!!!!
+# TO DO:
+#   - correct with basecase local contribution for scenarios
+#   - update everything for PM
+# !!!!!!!!!!!!!!!!!!!!!
+
 
 sherpacity_par <- function(scenario.input.list) {
   
@@ -58,9 +64,6 @@ sherpacity_par <- function(scenario.input.list) {
   
   # Read the emission raster file
   # ------------------------------
-  # !!!!!!!!!!!!!!!!!!!!!! WARNING DOUBLE EMISSIONS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  # emis.raster <- 2*raster(emission.raster.file)
-  # !!!!!!!!!!!!!!!!!!!!!! WARNING DOUBLE EMISSIONS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   emis.raster <- raster(emission.raster.file)
   
   # Get the background concentrations
@@ -168,8 +171,13 @@ sherpacity_par <- function(scenario.input.list) {
     }
     # get the background from the CTM: an single number or raster
     nox.background <- background.list$NOx
-    # total NOx = Background corrected reduced with smoothed local (number or raser) plus local NOx
-    nox.raster <- nox.background - nox.local.mean + conc.raster
+    if (background.includes.traffic == TRUE) {
+      # total NOx = Background corrected reduced with smoothed local (number or raster) plus local NOx
+      nox.raster <- nox.background - nox.local.mean + conc.raster
+    } else if (background.includes.traffic == FALSE) {
+      # total NOx = One background value or smoothed background raster plus local NOx
+      nox.raster <- nox.background + conc.raster
+    }
     
     # calculate local NO2 fraction
     local.romberg.coefs <- getRombergCoefs(background.list[["NO_centre"]], background.list[["NO2_centre"]])
@@ -190,7 +198,11 @@ sherpacity_par <- function(scenario.input.list) {
     # In this way double counting is avoided.
     pm.local.mean <- mean(values(conc.raster))
     # write the results to an ascii file
-    pm.raster <- conc.raster - pm.local.mean + background.matrix["conc_ugm3", myPollutant]
+    if (background.includes.traffic == TRUE) {
+      pm.raster <- conc.raster - pm.local.mean + background.matrix["conc_ugm3", myPollutant]
+    } else if (background.includes.traffic == FALSE) {
+      pm.raster <- conc.raster + background.matrix["conc_ugm3", myPollutant]
+    }
     # write a raster with the total and local concentration
     writeRaster(pm.raster, file.path(output.path, myPollutant, "_total_conc.asc"), overwrite = TRUE)
     writeRaster(conc.raster, file.path(output.path, myPollutant, "_local_conc.asc"), overwrite = TRUE)
