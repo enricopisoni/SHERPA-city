@@ -34,7 +34,7 @@ sherpacity_par <- function(scenario.input.list) {
   sc.config.file <- scenario.input.list$sc.config.file
   city.coord <- scenario.input.list$city.coord
   emission.raster.file <- scenario.input.list$emis.raster.file
-  pollutant <- scenario.input.list$pollutant
+  myPollutant <- scenario.input.list$pollutant
   output.path <- scenario.input.list$output.path
   raster.background <- scenario.input.list$raster.background
 
@@ -67,7 +67,7 @@ sherpacity_par <- function(scenario.input.list) {
   # ----------------------------------
   
   # -------- NO2 -----------
-  if (pollutant == 'NO2') {
+  if (myPollutant == 'NO2') {
     # Four possibilities
     # NO not available, NOx and NO2 available (the case of Chimere)
     if (is.na(no.varname) & (!(is.na(no2.varname)) | !(is.na(nox.varname)))) {       
@@ -107,27 +107,21 @@ sherpacity_par <- function(scenario.input.list) {
     }
     
   # -------- PM2.5 -----------  
-  } else if (pollutant == 'PM25') {
-    # read netcdf file names and variable names in the netcdf from the config file
-    background.pm.nc <- toString(config.df$value[config.df$variable_name == "background.pm25.nc"])
-    pm25.varname <- toString(config.df$value[config.df$variable_name == "pm25.varname"])
+  } else if (myPollutant == 'PM25') {
     # retrieve the background at the city location
-    background.info <- matrix(c(background.pm.nc, pm25.varname), nrow=2, ncol=1,
+    background.info <- matrix(c(background.pm25.nc, pm25.varname), nrow=2, ncol=1,
                               dimnames=list(c("nc.file", "varname"), c("PM25")))
     background.list <- getBackground(city.coord, background.info, emis.raster, raster.background)
   
   # -------- PM10 ------------  
-  } else if (pollutant == 'PM10') {
-    # read netcdf file names and variable names in the netcdf from the config file
-    background.pm.nc <- toString(config.df$value[config.df$variable_name == "background.pm25.nc"])
-    pm10.varname <- toString(config.df$value[config.df$variable_name == "pm10.varname"])
+  } else if (myPollutant == 'PM10') {
     # retrieve the background at the city location
-    background.info <- matrix(c(background.pm.nc, pm10.varname), nrow=2, ncol=1,
+    background.info <- matrix(c(background.pm10.nc, pm10.varname), nrow=2, ncol=1,
                               dimnames=list(c("nc.file", "varname"), c("PM10")))
     background.list <- getBackground(city.coord, background.info, emis.raster, raster.background)
     
   } else {
-    print(paste("unknown pollutant:", pollutant))
+    print(paste("unknown pollutant:", myPollutant))
   }
   
   # if the low resolution part from the CTM are numbers write a file, if it is a high
@@ -153,7 +147,7 @@ sherpacity_par <- function(scenario.input.list) {
   conc.raster[is.na(conc.raster)] <- 0
   # plot(conc.raster)
   
-  if (pollutant == 'NO2') {
+  if (myPollutant == 'NO2') {
     
     # calculate local NOx as NOx.background - average local NOx over domain + local NOx
     # !!! Also here na.rm=TRUE because NAs are still possible if there are big areas without emissions (sea)
@@ -191,15 +185,15 @@ sherpacity_par <- function(scenario.input.list) {
     writeRaster(conc.raster, file.path(output.path, 'NOx_local_conc.asc'), overwrite = TRUE)
   }
   
-  if (pollutant %in% c("PM25", "PM10")) {
+  if (myPollutant %in% c("PM25", "PM10")) {
     # calculate local PM as PM.background - average local PM over domain + local PM
     # In this way double counting is avoided.
     pm.local.mean <- mean(values(conc.raster))
     # write the results to an ascii file
-    pm.raster <- conc.raster - pm.local.mean + background.matrix["conc_ugm3", pollutant]
+    pm.raster <- conc.raster - pm.local.mean + background.matrix["conc_ugm3", myPollutant]
     # write a raster with the total and local concentration
-    writeRaster(pm.raster, file.path(output.path, pollutant, "_total_conc.asc"), overwrite = TRUE)
-    writeRaster(conc.raster, file.path(output.path, pollutant, "_local_conc.asc"), overwrite = TRUE)
+    writeRaster(pm.raster, file.path(output.path, myPollutant, "_total_conc.asc"), overwrite = TRUE)
+    writeRaster(conc.raster, file.path(output.path, myPollutant, "_local_conc.asc"), overwrite = TRUE)
   }
 }
 
