@@ -2,10 +2,6 @@
 # Create gridded emissions from the gridded network
 # -------------------------------------------------
 
-# rm(list = ls())
-
-
-
 # function creating gridded emissions for a scenario
 # --------------------------------------------------
 create.gridded.emissions <- function(scenario_name) {
