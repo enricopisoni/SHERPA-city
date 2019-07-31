@@ -21,7 +21,7 @@
 rm(list=ls())
 # set the directory of this script as working directory
 # wd <- dirname(sys.frame(1)$ofile)
-wd <- "D:/SHERPAcity/NO2_atlas/run20190724"
+wd <- "D:/SHERPAcity/NO2_atlas/run20190731_SNAP7zero"
 setwd(wd)
 
 # load libraries and auxiliary functions
@@ -231,7 +231,8 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     # Initiate cluster. Never take more cores than scenarios and one less than available on the machine
     cl <- makeCluster(min(no_cores-1, n.scenarios)) 
     # add common variables for all scenarios to the cluster environment
-    clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder", "AADT.field"))
+    clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder", 
+                        "AADT.field", "emission.raster.folder"))
     # throw the runs on the cluster
     parLapply(cl, scenario.list, create.gridded.emissions)
     # stop the cluster
