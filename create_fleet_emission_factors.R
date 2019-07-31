@@ -95,7 +95,7 @@ create_fleet_emission_factors <- function(scenario.definition.file) {
   EFs.df <- data.frame()
   
   # loop over all counrty-year-configuration combinations
-  i.cyc <- 1
+  # i.cyc <- 3
   for (i.cyc in 1:NROW(country.year.config)) {
     country <- toString(country.year.config$default_fleet_country[i.cyc])
     year <- country.year.config$default_fleet_year[i.cyc]
@@ -126,7 +126,7 @@ create_fleet_emission_factors <- function(scenario.definition.file) {
                     sum.included.share = sum(vkm_network_share_sc*include),
                     cf = sum(vkm_network_share_sc) / sum(vkm_network_share_sc*include))
     
-    # apply correction factors to the user fleet
+    # apply correction factors to the vehicle kilometers of the user fleet
     for (i in 1:NROW(user.fleet.df)) {
       network.i <- user.fleet.df$network[i]
       category.i <- toString(user.fleet.df$category[i])
@@ -176,8 +176,8 @@ create_fleet_emission_factors <- function(scenario.definition.file) {
     efs <- ddply(user.fleet.df, c("network"), summarise,
                  onroad.ef.nox.gkm = sum(ef_nox_gpkm * vkm_network_share_new * pct_AADT / 100),
                  onroad.ef.pmex.gkm = sum(ef_pmex_gpkm * vkm_network_share_new * pct_AADT / 100),
-                 ef.nox.gkm = sum(ef_nox_gpkm * vkm_network_share_new),
-                 ef.pmex.gkm = sum(ef_pmex_gpkm * vkm_network_share_new))
+                 ef.nox.gkm = sum(ef_nox_gpkm * vkm_network_share_new * pct_AADT / 100) / sum(vkm_network_share_new * pct_AADT / 100) ,
+                 ef.pmex.gkm = sum(ef_pmex_gpkm * vkm_network_share_new * pct_AADT / 100) / sum(vkm_network_share_new * pct_AADT / 100))
     
     EFs.df <- rbind(EFs.df, data.frame(default_fleet_country = country, 
                                        default_fleet_year = year, 
