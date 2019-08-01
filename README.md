@@ -20,6 +20,8 @@ Link the local repository to the online one.
 
 ``` git pull https://github.com/bd77/SHERPA-city.git SNAP7_zero_background```
 
+``` git checkout SNAP7_zero_background ```
+
 Adapt the file city_list.txt. Add a line for every city you want to model. The format must be the same as the example given on github. When an extent of the domain is not provided (NA) a default domain of 20 by 20 km around the centre is chosen.
 
 Adapt the paths in the config file "NO2_atlas_config.R":
