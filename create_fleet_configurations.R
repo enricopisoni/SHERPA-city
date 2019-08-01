@@ -5,8 +5,7 @@
 create.fleet.configs <- function(fleet.config.folder, fleet.config.overview.file) {
   # read the overview file
   # each column contains a configuration. The function puts them in separate files
-  fleet.config.overview.df <- read.table(file.path(fleet.configuration.folder, 
-                                                   "fleet_configuration_overview.csv"), 
+  fleet.config.overview.df <- read.table(file.path(fleet.configuration.folder, fleet.config.overview.file), 
                                          sep = ",", header = T)
   # the fleet names are the column names (from the eighth to the last) in 
   # the fleet.config.overview.file

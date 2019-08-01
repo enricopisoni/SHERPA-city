@@ -229,7 +229,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     # Calculate the number of cores
     no_cores <- detectCores()
     # Initiate cluster. Never take more cores than scenarios and one less than available on the machine
-    cl <- makeCluster(min(no_cores-1, n.scenarios)) 
+    cl <- makeCluster(min(no_cores - 1, n.scenarios)) 
     # add common variables for all scenarios to the cluster environment
     clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder", 
                         "AADT.field", "emission.raster.folder"))
@@ -297,7 +297,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     no_cores <- detectCores()
     # Initiate cluster with as many cores as scenarios if possible, but never more than the
     # total number of cores minus 1
-    cl <- makeCluster(min(no_cores-1, n.scenarios))
+    cl <- makeCluster(min(no_cores - 1, n.scenarios))
     # throw the runs on the cluster
     parLapply(cl, input.list, sherpacity_par)
     # stop the cluster
