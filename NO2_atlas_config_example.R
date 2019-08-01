@@ -17,27 +17,28 @@ city.list.txt <- "city_list.txt"
 city.df <- read.table(city.list.txt, header = TRUE, sep = ";")
 
 # where are the data? (To be moved to the sherpa city config file)
-fleets.file <- "D:/SHERPAcity/NO2_atlas/run20181023/_fleets/fleets.csv"
-fleets.data.file <- "D:/SHERPAcity/NO2_atlas/run20181023/_fleets/fleets_data.csv"
+fleets.file <- "../_fleets/fleets.csv"
+fleets.data.file <- "../_fleets/fleets_data.csv"
 
-fleet.configuration.folder <- "D:/SHERPAcity/NO2_atlas/run20181023/_fleet_configurations"
+# location of fleet configurations for scenarios
+fleet.configuration.folder <- "_fleet_configurations"
+fleet.config.overview.file <- "Fleet_configuration_overview.csv"
 
 # path to the OTM shape files scaled to GAINS national totals
-otm.path <- "D:/SHERPAcity/OpenTransportMap/OTM_NUTS3_corrected_20181002/OTM_NUTS3_corrected_20181002"
+otm.path <- "../OTM_NUTS3_corrected_20181002"
 
 # list with boundary boxes of nuts3 areas            
-tag <- "20180723"
-nuts3.bbox.file <- paste0("D:/SHERPAcity/OpenTransportMap/OTM_nuts3_boundaryboxes_", tag, ".txt")
+nuts3.bbox.file <- "../OTM_NUTS3_corrected_20181002/OTM_nuts3_boundaryboxes_20180723.txt"
 nuts3.bbox.df <- read.table(nuts3.bbox.file, sep = ";", header = TRUE)
 nuts3.bbox.df <- na.exclude(nuts3.bbox.df)
 
 # cities network folder: this folder contains a sub folder 'cityname'. In this
 # sub folder there has to be a shape file 'traffic_roadlinks_<cityname>.shp' and
 # eventually a shape file 'traffic_roadlinks_zones_<cityname>'
-cities.network.folder <- "D:/SHERPAcity/NO2_atlas/run20181023"
+cities.network.folder <- "../run20190515_emep"
 
 # cities zones folder
-cities.zones.folder <- "D:/SHERPAcity/NO2_atlas/run20181023"
+cities.zones.folder <- "../run20190515_emep"
 
 # output folder in which every city will have a subfolder
 cities.output.folder <- "AllCities"
@@ -55,6 +56,6 @@ rerun.zoning <- FALSE
 raster.background <- TRUE
 
 # path to the sherpacity configuratoin file
-sc.config.file <- "sherpacity_config_emep_win.R"
+sc.config.file <- "sherpacity_config_emep_linux.R"
 pollutant <- "NOx"
 
