@@ -20,8 +20,8 @@
 # Clean up
 rm(list=ls())
 # set the directory of this script as working directory
-# wd <- dirname(sys.frame(1)$ofile)
-wd <- "D:/SHERPAcity/NO2_atlas/run20190731_SNAP7zero"
+wd <- dirname(sys.frame(1)$ofile)
+# wd <- "D:/SHERPAcity/NO2_atlas/run20190731_SNAP7zero"
 setwd(wd)
 
 # load libraries and auxiliary functions
