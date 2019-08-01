@@ -20,9 +20,13 @@ city.df <- read.table(city.list.txt, header = TRUE, sep = ";")
 fleets.file <- "../_fleets/fleets.csv"
 fleets.data.file <- "../_fleets/fleets_data.csv"
 
-# location of fleet configurations for scenarios
+# fleet configurations
 fleet.configuration.folder <- "_fleet_configurations"
 fleet.config.overview.file <- "Fleet_configuration_overview.csv"
+
+# scenario definition template
+fleet.year <- 2016
+scenario.template.file <- "_scenario_definitions/NO2 atlas scenario definition template.csv"
 
 # path to the OTM shape files scaled to GAINS national totals
 otm.path <- "../OTM_NUTS3_corrected_20181002"
@@ -35,10 +39,14 @@ nuts3.bbox.df <- na.exclude(nuts3.bbox.df)
 # cities network folder: this folder contains a sub folder 'cityname'. In this
 # sub folder there has to be a shape file 'traffic_roadlinks_<cityname>.shp' and
 # eventually a shape file 'traffic_roadlinks_zones_<cityname>'
-cities.network.folder <- "../run20190515_emep"
+cities.network.folder <- "../run20190515_emep/AllCities"
 
 # cities zones folder
-cities.zones.folder <- "../run20190515_emep"
+cities.zones.folder <- "../run20190515_emep/AllCities"
+
+# emission raster folder. In the subfolder of this folder there should
+# be/will be a cityname folder with scenario subfolders
+emission.raster.folder <- "AllCities"
 
 # output folder in which every city will have a subfolder
 cities.output.folder <- "AllCities"
