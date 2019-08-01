@@ -145,33 +145,38 @@ sherpacity_par <- function(scenario.input.list) {
   # ------------------------
   
   # focal applies the receptor kernel as a moving average over the emission field
-  # conc.raster gives to local contribution to the concentration
+  # conc.raster is the local contribution to the concentration
   conc.raster <- focal(emis.raster, rk.matrix, pad = TRUE, padValue = 0, na.rm=TRUE)
   conc.raster[is.na(conc.raster)] <- 0
   # plot(conc.raster)
   
   if (myPollutant == 'NO2') {
     
-    # calculate local NOx as NOx.background - average local NOx over domain + local NOx
+    # Combine background and local concentration.
+    # Two possibilities: CTM background with or without traffic emissions
     # !!! Also here na.rm=TRUE because NAs are still possible if there are big areas without emissions (sea)
-    if (raster.background == FALSE) {
-      nox.local.mean <- mean(values(conc.raster), na.rm = TRUE)
-    } else if (raster.background == TRUE) {
-      # smooth the local contribution at about 7x7 km
-      ncol <- round(background.list$dx / 20)
-      if (ncol %% 2 == 0) {ncol <- ncol + 1}
-      nrow <- round(background.list$dy / 20)
-      if (nrow %% 2 == 0) {nrow <- nrow + 1}
-      nox.local.mean <- focal(conc.raster, 
-                              w = matrix(1/ncol/nrow, nrow = nrow, ncol = ncol), 
-                              pad = TRUE, padValue = NA, na.rm=TRUE)
-      png(file.path(output.path, paste0("local_smoothed_NOx.png")))
-      plot(nox.local.mean, main = "Smoothed local NOx")
-      dev.off()
-    }
     # get the background from the CTM: an single number or raster
     nox.background <- background.list$NOx
     if (background.includes.traffic == TRUE) {
+      # if the background includes traffic a double counting correction is needed substracting
+      # the local mean concentration.
+      # Calculate the local mean: 2 possibilities; one number are a smoothed background
+      if (raster.background == FALSE) {
+        nox.local.mean <- mean(values(conc.raster), na.rm = TRUE)
+      } else if (raster.background == TRUE) {
+        # smooth the local contribution at about 7x7 km
+        ncol <- round(background.list$dx / 20)
+        if (ncol %% 2 == 0) {ncol <- ncol + 1}
+        nrow <- round(background.list$dy / 20)
+        if (nrow %% 2 == 0) {nrow <- nrow + 1}
+        nox.local.mean <- focal(conc.raster, 
+                                w = matrix(1/ncol/nrow, nrow = nrow, ncol = ncol), 
+                                pad = TRUE, padValue = NA, na.rm=TRUE)
+        png(file.path(output.path, paste0("local_smoothed_NOx.png")))
+        plot(nox.local.mean, main = "Smoothed local NOx")
+        dev.off()
+      }
+      # Apply the double counting correction
       # total NOx = Background corrected reduced with smoothed local (number or raster) plus local NOx
       nox.raster <- nox.background - nox.local.mean + conc.raster
     } else if (background.includes.traffic == FALSE) {
