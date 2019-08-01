@@ -12,9 +12,11 @@ If the directory is not empty - there might be already some input data - do the 
 
 ```git init```
 
+Link the local repository to the online one.
+
 ```git remote add origin https://github.com/bd77/SHERPA-city.git```
 
- Pull a specific branch to the local folder.
+ Pull a specific branch (SNAP7_zero_background) to the local folder.
 
 ``` git pull https://github.com/bd77/SHERPA-city.git SNAP7_zero_background```
 
