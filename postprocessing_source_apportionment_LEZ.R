@@ -8,7 +8,9 @@
 # - the complementary area as a whole
 # - several fleet contributions inside the complete LEZ
 
-wd <- "D:/SHERPAcity/NO2_atlas/run20190724"
+# set the directory of this script as working directory
+wd <- dirname(sys.frame(1)$ofile)
+# wd <- "D:/SHERPAcity/NO2_atlas/run20190731_SNAP7zero"
 setwd(wd)
 
 library(ggplot2)
@@ -21,6 +23,13 @@ source("NO2_atlas_config.R")
 # function to calculate the average concentration in the LEZ (big+small) for
 # each scenario of a city
 soap4lez <- function(cityname) {
+  library(ggplot2)
+  library(raster)
+  library(rgeos)
+  library(rgdal)
+  source("long2UTM.R")
+  source("NO2_atlas_config.R")
+  
   # city coordinates 
   city.coords <- matrix(c(city.df$lon[city.df$cityname == cityname],
                           city.df$lat[city.df$cityname == cityname]), ncol = 2,
@@ -114,6 +123,7 @@ soap4lez <- function(cityname) {
     } # scenario loop 
       
     # write result to a table
+    if (!(dir.exists("_source_apportionment"))) {dir.create("_source_apportionment")}
     write.table(soap.results.df, file.path("_source_apportionment", paste0("soap_", cityname, ".csv")), 
                 sep = ",", row.names = F)
       
@@ -123,11 +133,46 @@ soap4lez <- function(cityname) {
   } # scenario definition not ok
 }  
 
-for (cityname in city.df$cityname) {
-  soap4lez(cityname)
-}
+# for (cityname in city.df$cityname) {
+#   soap4lez(cityname)
+# }
+city.list <- as.vector(city.df$cityname)
+no_cores <- detectCores()
+# Initiate cluster. Never take more cores than scenarios and one less than available on the machine
+cl <- makeCluster(min(no_cores - 1, n.scenarios))
+# add common variables for all scenarios to the cluster environment
+# clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder",
+#                     "AADT.field", "emission.raster.folder"))
+# throw the runs on the cluster
+parLapply(cl, city.list, soap4lez)
+# stop the cluster
+stopCluster(cl)
+
+# Nudging factors for local NOx concentration
+# -------------------------------------------
+background.path <- "D:/SHERPAcity/NO2_atlas/_background/EmepSNAP7zero"
+# background NOx without traffic
+NO2.SNAP7zero.r <- raster(file.path(background.path, "EMEP_run_SNAP7_ZERO_50m_fullrun.nc"),
+                             varname = "SURF_ug_NO2")
+NO.SNAP7zero.r <- raster(file.path(background.path, "EMEP_run_SNAP7_ZERO_50m_fullrun.nc"),
+                             varname = "SURF_ug_NO")
+NOx.SNAP7zero.r <- NO2.SNAP7zero.r + NO.SNAP7zero.r
+# background NOx with traffic
+NO2.basecase.r <- raster(file.path(background.path, "EMEP_run_STANDARDnew_50m_fullrun.nc"),
+                             varname = "SURF_ug_NO2")
+NO.basecase.r <- raster(file.path(background.path, "EMEP_run_STANDARDnew_50m_fullrun.nc"),
+                            varname = "SURF_ug_NO")
+NOx.basecase.r <- NO2.basecase.r + NO.basecase.r
 
 for (cityname in city.df$cityname) {
+  # get delta NOx concentration from CTM
+  city.coords <- matrix(c(city.df$lon[city.df$cityname == cityname],
+                          city.df$lat[city.df$cityname == cityname]), ncol = 2,
+                        dimnames = list(c(cityname), c("lon", "lat")))
+  NOx.basecase <- extract(NOx.basecase.r, city.coords, method="bilinear") 
+  NOx.SNAP7zero <- extract(NOx.SNAP7zero.r, city.coords, method="bilinear")
+  delta.NOx.SNAP7 <- NOx.basecase - NOx.SNAP7zero
+
   # read result table
   soap.city.df <- read.table(file.path("_source_apportionment", paste0("soap_", cityname, ".csv")),
                              sep = ",", header = T)
@@ -166,4 +211,43 @@ for (cityname in city.df$cityname) {
       width = 2*480, height = 480)
   print(p)
   dev.off()
+  
+  # nudging
+  nudged.soap.city.df <- read.table(file.path("_source_apportionment", paste0("soap_", cityname, ".csv")),
+                                    sep = ",", header = T)
+  local <- nudged.soap.city.df$source.area != "World"
+  sherpacity.local.traffic.NOx <- sum(nudged.soap.city.df$conc[local])
+  corr.factor.local <- delta.NOx.SNAP7 / sherpacity.local.traffic.NOx
+  nudged.soap.city.df$conc[local] <- nudged.soap.city.df$conc[local] * corr.factor.local
+  
+  # add offset
+  Comp.offset <- nudged.soap.city.df$conc[nudged.soap.city.df$source.area == "World"]
+  LEZ.offset <- Comp.offset + nudged.soap.city.df$conc[nudged.soap.city.df$source.area == "Complement"]
+  offset.df <- data.frame(source.area = c("World", "Complement", "LEZ"),
+                          source.fleet = rep("offset", 3),
+                          conc.area = rep("LEZ", 3),
+                          pollutant = rep("NOx", 3),
+                          conc = c(World.offset, Comp.offset, LEZ.offset))
+  # add the offsets to the dataframe
+  nudged.soap.city.df <- rbind(nudged.soap.city.df, offset.df)
+  
+  # create ordered factors
+  nudged.soap.city.df$source.area <- factor(nudged.soap.city.df$source.area, levels = rev(c("World", "Complement", "LEZ")), ordered = T)
+  nudged.soap.city.df$source.fleet <- factor(nudged.soap.city.df$source.fleet, levels = fleet.levels, ordered = T)
+  
+  
+  p <- ggplot(data = nudged.soap.city.df, aes(x=source.area, y=conc, fill=source.fleet))
+  p <- p + geom_col() + coord_flip()
+  p <- p + scale_colour_manual(values = fleet.colors, 
+                               aesthetics = c("colour", "fill"),
+                               labels = fleet.labels)
+  p <- p + labs(y="NOx [ug/m3]", x="NOx source area", 
+                title = paste0("Source apportionment of the ", cityname, 
+                               " LEZ\n(local NOx CF=", round(corr.factor.local,1), ")"))
+  p <- p + theme(text = element_text(size=20))
+  png(file.path("_source_apportionment", paste0("SOAPbarplot_", cityname, "_nudged.png")),
+      width = 2*480, height = 480)
+  print(p)
+  dev.off()
+  
 }
