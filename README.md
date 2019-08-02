@@ -46,3 +46,4 @@ The script 'NO2_atlas_workflow.R' coordinates the whole process. First it sets t
 - add an example of OTM data to the github
 - parallelize making UTM shape files for each domain and adding zones.
 - parallelize emission and concentration raster between different cities to optimize the number of nodes used.
+- Add warning when zones names in grid_table do not correspond to zone names in the scenario definition. Otherwise emissions disapear.
