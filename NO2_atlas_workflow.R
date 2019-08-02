@@ -40,8 +40,16 @@ source("create_gridded_emissions.R")       # step 5
 source("sherpacity_par.R")                 # step 6
 source("long2UTM.R")
 
+
 # Create fleet configurations
-create.fleet.configs(fleet.configuration.folder, fleet.config.overview.file)
+# ---------------------------
+if (file.exists(file.path(fleet.configuration.folder, fleet.config.overview.file))) {
+  create.fleet.configs(fleet.configuration.folder, fleet.config.overview.file)
+} else {
+  print(paste0("No fleet configurations could be produced because the overview file ",
+               fleet.config.overview.file, " was not found."))
+}
+
 
 # loop over all the cities
 for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
