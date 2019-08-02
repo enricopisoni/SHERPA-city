@@ -3,7 +3,7 @@
 # ------------------------------------------------------
 
 # location of the source kernels
-source.kernel.folder <- "/home/degraba/NO2_atlas/_SourceKernels/EUR"
+source.kernel.folder <- "../_SourceKernels/EUR"
 
 # location of the background netcdfs for NO2, NO, NOx, O3, PM2.5 and PM10
 # NO2, NO and NOx have to be specified but one of the three can be NA.
