@@ -67,6 +67,10 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     dir.create(city.output.folder, recursive = T) 
   }
   
+  # create results folder if it doesn't exist
+  results.folder <- file.path(city.output.folder, "results")
+  if (!dir.exists(results.folder)) { dir.create(results.folder) }
+  
   # folder and filename of the UTM shape file with the network (maybe it exists, maybe not)
   dsn.city.utm.shp <- file.path(cities.network.folder, cityname)
   layer.city.utm.shp <- paste0("traffic_roadlinks_", cityname)
@@ -114,7 +118,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     writeOGR(city.utm.sldf, dsn = dsn.city.utm.shp, layer = layer.city.utm.shp,
              driver="ESRI Shapefile")
   } else {
-    print(paste0("A network shape file in UTM without zones was already created for ", cityname))
+    print(paste0("A network shape file in UTM without zones already exists for ", cityname))
   }
 
   # Step 2: Add a column with the zone to the network shp
@@ -139,7 +143,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     }
     
     # Check if there is a shape file with zones. If so, add the zones to the network shape file.
-    dsn.zones.shp <- paste0(city.output.folder, "/zones_", cityname) 
+    dsn.zones.shp <- file.path(cities.zones.folder, cityname, paste0("zones_", cityname))
     layer.zones.shp <- paste0("zones_", cityname)
     zones.shp <- paste0(dsn.zones.shp, "/", layer.zones.shp, ".shp")
     if (file.exists(zones.shp)) {
@@ -193,8 +197,8 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # see fast_gridding.py
   gridded.network.file <- file.path(cities.network.folder, cityname, paste0(cityname, "_grid_tbl.txt"))
   
-  # Step 4: Calculate fleet emission factors
-  # ----------------------------------------
+  # Step 4: Calculate fleet emission factors for all scenarios
+  # ----------------------------------------------------------
   
   # Create scenario definition file from a template
   create.scenario.definition(scenario.template.file, city.df, cityname, fleet.year, city.output.folder)
@@ -218,10 +222,13 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   
   # Step 5: Create emission rasters for scenarios
   # ---------------------------------------------
+  
+  # !!! There is no guarantee that the emission rasters are made with the 
+  # emission factors in the config file when emission rasters from another
+  # project are used.
 
   # check if a gridded network table and emission factors are available
   if (file.exists(gridded.network.file) & file.exists(emission.factors.file)) {
-    print(paste0("Creating emission rasters for ", cityname))
 
     # read the emission factors
     scenario.efs.df <- read.table(emission.factors.file, sep = ",", header = TRUE)
@@ -230,21 +237,39 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     # read the gridded network
     gridded.network.df <- read.table(gridded.network.file, sep = ";", header = TRUE, quote = "")
 
-    # create results folder if it doesn't exist
-    results.folder <- file.path(city.output.folder, "results")
-    if (!dir.exists(results.folder)) { dir.create(results.folder) }
-
-    # # Calculate the number of cores
-    # no_cores <- detectCores()
-    # # Initiate cluster. Never take more cores than scenarios and one less than available on the machine
-    # cl <- makeCluster(min(no_cores - 1, n.scenarios))
-    # # add common variables for all scenarios to the cluster environment
-    # clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder",
-    #                     "AADT.field", "emission.raster.folder"))
-    # # throw the runs on the cluster
-    # parLapply(cl, scenario.list, create.gridded.emissions)
-    # # stop the cluster
-    # stopCluster(cl)
+    input.list <- list()
+    for (i in 1:n.scenarios) {
+      scenario.name <- scenario.list[i]
+      # check if the emission raster is already calculated
+      scenario.output.folder <- file.path(emission.raster.folder, cityname, 
+                                         "results", scenario.name)
+      scen.emis.raster.file <- file.path(scenario.output.folder,
+                                         paste0("emis_", pollutant, ".asc"))
+      # if no raster, add scenario to the input list for the cluster
+      if (!(file.exists(scen.emis.raster.file))) {
+        input.list[[i]] <- list("scenario.name" = scenario.name,
+                                "scenario.output.folder" = scenario.output.folder,
+                                "pollutant" = pollutant)
+      }
+    }
+    # if there's work to be done, set up a cluster and calculate the rastes
+    # for testing create.gridded.emissions(input.list[[2]])
+    if (length(input.list) > 0) {
+      # Calculate the number of cores
+      no_cores <- detectCores()
+      # Initiate cluster. Never take more cores than scenarios and one less than available on the machine
+      cl <- makeCluster(min(no_cores - 1, n.scenarios))
+      # add common variables for all scenarios to the cluster environment
+      clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder",
+                          "AADT.field", "emission.raster.folder"))
+      # throw the runs on the cluster
+      print(paste0("Creating emission rasters for ", cityname))
+      parLapply(cl, input.list, create.gridded.emissions)
+      # stop the cluster
+      stopCluster(cl)
+    } else {
+      print(paste0("All emission rasters are already calculated for", cityname))
+    }
 
   } else {
     if(!(file.exists(gridded.network.file))) {
@@ -262,10 +287,6 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # the variables 'pollutant' and 'sc.config.file' are defined in the
   # config file 'NO2_atlas_config.R'.
 
-#  if (file.exists(gridded.network.file) & file.exists(emission.factors.file)) {
-
-  print(paste0("Creating concentration rasters for ", cityname))
-        
   input.list <- list()
   n.scenarios <- length(scenario.list)
   # loop over all scenarios
@@ -302,15 +323,17 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # sherpacity_par(input.list[[3]])
   if (length(input.list) > 0) {
     # Calculate the number of cores
-    no_cores <- detectCores()
+    no_cores <- detectCores() - 1
     # Initiate cluster with as many cores as scenarios if possible, but never more than the
     # total number of cores minus 1
-    cl <- makeCluster(min(no_cores - 1, length(input.list)))
+    cl <- makeCluster(min(no_cores, length(input.list)))
+    print(paste0("Calculating concentrations for ", length(input.list), " scenarios in ", 
+                 cityname, " on ", no_cores, " cores."))
     # throw the runs on the cluster
     parLapply(cl, input.list, sherpacity_par)
     # stop the cluster
     stopCluster(cl)
-  }
+  } 
 
 #  } # if stuff exists
 } # close loop over cities
