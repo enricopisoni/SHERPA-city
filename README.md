@@ -41,9 +41,8 @@ The script 'NO2_atlas_workflow.R' coordinates the whole process. First it sets t
 6) Apply the dispersion kernels on the emissions
 
 ### To do/ideas
-- Add a path to a folder with the zones for each city to the config file instead of putting them in the city folder.
 - Add more error handling and messages. E.g. the parallel routine doesn't return errors. It's hard to know where it went wrong without directily calling sherpa_city_par.R for a specific case.
 - default area of 20x20km: put the default in the config file. 
 - add an example of OTM data to the github
 - parallelize making UTM shape files for each domain and adding zones.
-- Add the possibility to define paths to the network file, zoned network file and the zones shape files. This would avoid copying a lot of data when the same network and zones are used with different background, different code,...
+- parallelize emission and concentration raster between different cities to optimize the number of nodes used.
