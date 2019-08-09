@@ -21,7 +21,7 @@
 rm(list=ls())
 # set the directory of this script as working directory
 wd <- dirname(sys.frame(1)$ofile)
-# wd <- "D:/SHERPAcity/NO2_atlas/run20190731_SNAP7zero"
+# wd <- "D:/SHERPAcity/NO2_atlas/run20190809_EmisNudging"
 setwd(wd)
 
 # load libraries and auxiliary functions
@@ -48,6 +48,15 @@ if (file.exists(file.path(fleet.configuration.folder, fleet.config.overview.file
 } else {
   print(paste0("No fleet configurations could be produced because the overview file ",
                fleet.config.overview.file, " was not found."))
+}
+
+# If emission nudging is required, read the cTM traffic emissions
+if (emission.nudging == TRUE) {
+  # a netcdf with the traffic emission density has to be provided
+  ctm.traffic.emissions.r <- raster(ctm.traffic.emissions.nc, varname = ctm.traffic.emissions.varname)
+  ctm.emis.cell.area <- area(ctm.traffic.emissions.r)
+  # emission density in ton/year/km2
+  ctm.traffic.emisdens.r <- ctm.traffic.emissions.r / ctm.emis.cell.area
 }
 
 
@@ -236,6 +245,20 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     n.scenarios <- length(scenario.list)
     # read the gridded network
     gridded.network.df <- read.table(gridded.network.file, sep = ";", header = TRUE, quote = "")
+    
+    # In the case of emission nudging, first the basecase has to be calculated, a correction
+    # factor determined and then the other scenarios can be calculated.
+    if (emission.nudging == TRUE) {
+      if ("basecase" %in% scenario.list) {
+        basecase.input.list <- list("scenario.name" = "basecase",
+                                    "scenario.output.folder" = scenario.output.folder,
+                                    "pollutant" = pollutant)
+        create.gridded.emissions(basecase.input.list)
+      } else {
+        print("No emission nudging possible without basecase scenario.")
+      }
+
+    }
 
     input.list <- list()
     for (i in 1:n.scenarios) {
