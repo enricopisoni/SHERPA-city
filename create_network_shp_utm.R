@@ -2,6 +2,10 @@
 # create network shape file of a domain in UTM
 # --------------------------------------------
 
+# This script checks which boundary boxes of OTM files overlap with the domain.
+# The overlapping OTM shape files are opened, cropped to the domain and joined together.
+# The result is a shape file of the road network in the domain.
+
 library(rgdal)
 library(raster)
 library(rgeos)
@@ -9,6 +13,7 @@ source("long2UTM.R")
 
 create.network.shp.utm <- function(city.extent, cityname, nuts3.bbox.df, otm.path) {
   # list with boundary boxes of nuts3 areas
+  # loop over the boundary box file and check which boundary boxes overlap with the domain
   nuts3.in.city.domain <- c()
   for (i in 1:NROW(nuts3.bbox.df)) {
     extent.nuts3 <- extent(c(nuts3.bbox.df$lon_min[i], nuts3.bbox.df$lon_max[i],
@@ -18,11 +23,12 @@ create.network.shp.utm <- function(city.extent, cityname, nuts3.bbox.df, otm.pat
       nuts3.in.city.domain <- c(nuts3.in.city.domain, nuts3)
     }
   }
+  # initialize shape file with the union of all OTM files inside the domain
   shp.union <- NULL
   for (nuts3 in nuts3.in.city.domain) {
     nuts3.shp.folder <- file.path(otm.path, nuts3)
     nuts3.shp.name <- paste0("traffic_roadlinks_", nuts3)
-    shp.orig <- readOGR(nuts3.shp.folder, nuts3.shp.name)
+    shp.orig <- readOGR(dsn = nuts3.shp.folder, layer = nuts3.shp.name)
     shp.cropped <- crop(shp.orig, city.extent)
     if (is.null(shp.union)) {
       shp.union <- shp.cropped
