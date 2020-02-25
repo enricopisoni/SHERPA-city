@@ -1,6 +1,6 @@
-# -------------------#
+#--------------------#
 # NO2 atlas workflow #
-# -------------------#
+#--------------------#
 
 # The workflow consists of the following steps
 # 1) Looking up which OTM shape files are needed to construct a shape file of the domain
@@ -20,8 +20,8 @@
 # Clean up
 rm(list=ls())
 # set the directory of this script as working directory
-wd <- dirname(sys.frame(1)$ofile)
-# wd <- "D:/SHERPAcity/NO2_atlas/run20190731_SNAP7zero"
+# wd <- dirname(sys.frame(1)$ofile)
+wd <- "D:/SHERPAcity/Case_study_Madrid/SC_code"
 setwd(wd)
 
 # load libraries and auxiliary functions
@@ -49,7 +49,6 @@ if (file.exists(file.path(fleet.configuration.folder, fleet.config.overview.file
   print(paste0("No fleet configurations could be produced because the overview file ",
                fleet.config.overview.file, " was not found."))
 }
-
 
 # loop over all the cities
 for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
@@ -168,6 +167,12 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
       # zoned.network.shp.utm@data$zone_name <- "Complement"
     }
     
+    # Step 2.1: Add the traffic volumes with the data from Panos in a new field 'aadt_madrid'
+    # ---------------------------------------------------------------------------------------
+    
+    
+    
+    
     # write the UTM shape file with zone(s) if it was produced. There are 2 possibilities:
     # 1) A valid zones file was provided (without overlapping zones)
     # 2) No zones file, just one complementary zone everywhere
@@ -177,9 +182,10 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
          layer = layer.city.zoned.utm.shp,
          driver = "ESRI Shapefile",
          overwrite = TRUE)
-      # !!!!!!!!!!!
-      # to save some space the network shape file without zones could be deleted
-      # !!!!!!!!!!!
+         # !!!!!!!!!!!
+         # to save some space the network shape file without zones could be deleted
+         # !!!!!!!!!!!
+         # file.remove(file.path(dsn.city.utm.shp, paste0(layer.city.utm.shp, c(".shp", ".dbf", ".prj", ".shx"))))
     }
 
   } else {
@@ -190,6 +196,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   for (myVar in c('zoned.network.shp.utm', 'network.shp.utm', 'zones.shp')) {
     if (myVar %in% ls()) {rm(myVar)}
   }
+  
   
   # Step 3: Grid the road network (currently in Python)
   # ---------------------------------------------------
