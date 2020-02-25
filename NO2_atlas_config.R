@@ -26,7 +26,7 @@ fleet.config.overview.file <- "Fleet_configuration_overview.csv"
 
 # scenario definition template
 fleet.year <- 2016
-scenario.template.file <- "_scenario_definitions/NO2 atlas scenario definition template.csv"
+scenario.template.file <- "_scenario_definitions/LEZ_Madrid_scenarios.csv"
 
 # path to the OTM shape files scaled to GAINS national totals
 otm.path <- "../../OpenTransportMap/OTM_NUTS3_corrected_20181002/OTM_NUTS3_corrected_20181002"
@@ -71,6 +71,6 @@ rerun.zoning <- FALSE
 raster.background <- TRUE
 
 # path to the sherpacity configuratoin file
-sc.config.file <- "sherpacity_config_emep_linux.R"
+sc.config.file <- "sherpacity_config_madrid.R"
 pollutant <- "NOx"
 
