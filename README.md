@@ -1,6 +1,4 @@
-# --------------------------------#
 # SHERPA-city (Madrid Case study) #
-# --------------------------------#
 
 This readme file guides you through the process of setting up SHERPA-city simulations 
 for a whole as many cities and scenarios as you want. This specific branch uses data for Madrid
@@ -29,8 +27,7 @@ Eventually change to another branch.
 
 Save the file "city_list_example.txt" from the github repository as "city_list.txt". Adapt the file city_list.txt. Add a line for every city you want to model. The format must be the same as the example given on github. When an extent of the domain is not provided (NA) a default domain of 20 by 20 km around the centre is chosen.
 
-### NO2_atlas_config.R ###
-# ------------------------
+## NO2_atlas_config.R
 Save the file "NO2_atlas_config_example.R" from the github repository as "NO2_atlas_config.R".
 Adapt the paths in the config file "NO2_atlas_config.R". The working directory (root directory) is the one where the 'NO2_atlas_workflow.R' script is. This is the directory where you cloned the repository. All paths have to be defined relative to this folder or as absolute paths. The following paths have to be defined:
 - The path to "city_list.txt"
@@ -53,8 +50,7 @@ Adapt the paths in the config file "NO2_atlas_config.R". The working directory (
 
 - Define an output folder for all the city results (cities.output.folder).
 
-### NO2 Atlas workflow ###
-#-------------------------
+## NO2 Atlas workflow
 The script 'NO2_atlas_workflow.R' coordinates the whole process. First it sets the directory where it is located as working directory. Then the following steps are done for each city in the city_list.txt file:
 1) Looking up which OTM shape files are needed to construct a shape file of the domain and producue the shape file. By default the city centre (defined in city.df) is taken as the centre of a 20x20 km square. If the lon.min, lon.max, lat.min, and lat.max variables are avaliable in city.df these are taken as domain boundaries. All results of a city are in a subfolder <cityname>/
 2) Add a column with the zone to the network shp. A zone shape file has to be availalble in a sub-folder <cityname>/zones_<city_name>. The format of this file is strictly defined:
@@ -65,7 +61,7 @@ The script 'NO2_atlas_workflow.R' coordinates the whole process. First it sets t
 5) Calculate gridded emissions for each scenario. Scenarios are under <cityname>/results/<scenario_name>
 6) Apply the dispersion kernels on the emissions
 
-### To do/ideas
+## To do/ideas
 - Add a path to a folder with the zones for each city to the config file instead of putting them in the city folder.
 - Add more error handling and messages. E.g. the parallel routine doesn't return errors. It's hard to know where it went wrong without directily calling sherpa_city_par.R for a specific case.
 - default area of 20x20km: put the default in the config file. 
