@@ -169,9 +169,25 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     
     # Step 2.1: Add the traffic volumes with the data from Panos in a new field 'aadt_madrid'
     # ---------------------------------------------------------------------------------------
-    
-    
-    
+    # csv with AADT before and after the LEZ
+    aadt.madrid.file <- "../Madrid_AADT.csv"
+    if (file.exists(aadt.madrid.file)) {
+      # read the file with AADT for different years in Madrid
+      aadt.madrid.df <- read.table(aadt.madrid.file, sep = ",", header = TRUE)
+      if (cityname == "Madrid18") {
+        aadt.col <- "AADT_2018"
+      } else if (cityname == "Madrid19") {
+        aadt.col <- "AADT_2019"
+      }
+      # merge the network and the new AADT data
+      zoned.city.utm.sldf <- merge(zoned.city.utm.sldf, aadt.madrid.df[,c("inspireid", aadt.col)])
+      # change the name of the added column
+      names(zoned.city.utm.sldf)[names(zoned.city.utm.sldf) == aadt.col] <- AADT.field
+      # There are roads without traffic => put NA values to zero
+      zoned.city.utm.sldf@data[is.na(zoned.city.utm.sldf@data[,AADT.field]), AADT.field] <- 0
+    }
+    # End of step 2.1
+    # ---------------------------------------------------------------------------------------
     
     # write the UTM shape file with zone(s) if it was produced. There are 2 possibilities:
     # 1) A valid zones file was provided (without overlapping zones)
@@ -243,7 +259,15 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     n.scenarios <- length(scenario.list)
     # read the gridded network
     gridded.network.df <- read.table(gridded.network.file, sep = ";", header = TRUE, quote = "")
-
+    
+    # Check that all zones and warn if emission factors are missing
+    zones.in.network <- as.vector(unique(gridded.network.df$zone_name))
+    zones.in.efs <- as.vector(unique(scenario.efs.df$zone_name))
+    zone.present <- zones.in.network %in% zones.in.efs
+    if (prod(zone.present) != 1) {
+      print(paste0("WARNING: There are zones in the network without emission factors: ", zones.in.network[!zone.present]))
+    }
+    
     input.list <- list()
     for (i in 1:n.scenarios) {
       scenario.name <- scenario.list[i]
@@ -326,11 +350,11 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
       }
     }
   }
-  # for testing
-  # sherpacity_par(input.list[[3]])
+  # for testing and debugging
+  # sherpacity_par(input.list[[1]])
   if (length(input.list) > 0) {
     # Calculate the number of cores
-    no_cores <- detectCores() - 1
+    no_cores <- min(length(input.list), detectCores() - 1)
     # Initiate cluster with as many cores as scenarios if possible, but never more than the
     # total number of cores minus 1
     cl <- makeCluster(min(no_cores, length(input.list)))
