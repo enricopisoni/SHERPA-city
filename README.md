@@ -52,7 +52,7 @@ Adapt the paths in the config file "NO2_atlas_config.R". The working directory (
 
 ## NO2 Atlas workflow
 The script 'NO2_atlas_workflow.R' coordinates the whole process. First it sets the directory where it is located as working directory. Then the following steps are done for each city in the city_list.txt file:
-1) Looking up which OTM shape files are needed to construct a shape file of the domain and producue the shape file. By default the city centre (defined in city.df) is taken as the centre of a 20x20 km square. If the lon.min, lon.max, lat.min, and lat.max variables are avaliable in city.df these are taken as domain boundaries. All results of a city are in a subfolder <cityname>/
+1) Looking up which OTM shape files are needed to construct a shape file of the domain and produce the shape file. By default the city centre (defined in city.df) is taken as the centre of a 20x20 km square. If the lon.min, lon.max, lat.min, and lat.max variables are avaliable in city.df these are taken as domain boundaries. All results of a city are in a subfolder <cityname>/
 2) Add a column with the zone to the network shp. A zone shape file has to be availalble in a sub-folder <cityname>/zones_<city_name>. The format of this file is strictly defined:
 - projection WGS84, 3 fields, id (int), name (string), descr (string)
 - non overlapping polygons named bigLEZ and smallLEZ (for the Atlas)
@@ -61,7 +61,27 @@ The script 'NO2_atlas_workflow.R' coordinates the whole process. First it sets t
 5) Calculate gridded emissions for each scenario. Scenarios are under <cityname>/results/<scenario_name>
 6) Apply the dispersion kernels on the emissions
 
+Below each step is explained in more detail:
+
+### Creating the road network.
+Scaling the original OpenTransportMap data is done with the script: 
+This script also creates a file with boundary boxes of each NUTS3 shape file of OTM. This makes it faster to select the OTM shape files necessary to create the domain.
+
+### Add the zones
+The script '' makes the intersection between the zone(s) and the road network. The result is a new shape file, 'traffic_roadlinks_zones_<city_name>.shp' with an extra field 'zone'. Road links that cross the zone boundaries are cut in two.
+
+### Gridding
+The gridding is done with a python script (because it's faster). Maybe it should be converted to R. Having one piece of code in python is not nice.
+
+### Fleet configurations
+
+### Scenario configurations
+
+### Concentration calculations
+
+
 ## To do/ideas
+- Translate the griddig script from python to R.
 - Add a path to a folder with the zones for each city to the config file instead of putting them in the city folder.
 - Add more error handling and messages. E.g. the parallel routine doesn't return errors. It's hard to know where it went wrong without directily calling sherpa_city_par.R for a specific case.
 - default area of 20x20km: put the default in the config file. 
