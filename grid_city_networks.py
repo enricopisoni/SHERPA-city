@@ -13,6 +13,7 @@ rerun = False
 
 # read the list of cities
 city_list_txt = "city_list.txt"
+cities_zones_folder = "AllMadrid"
 fc = open(city_list_txt, 'r')
 line = fc.readline()
 city_dict = {}
@@ -28,10 +29,10 @@ while True:
 # loop over all cities
 for cityname in city_dict.keys(): #:
     # check if the shp utm is produced
-    city_shp_utm = "%s/traffic_roadlinks_zones_%s.shp" % (cityname, cityname)
+    city_shp_utm = "%s/%s/traffic_roadlinks_zones_%s.shp" % (cities_zones_folder, cityname, cityname)
     if os.path.isfile(city_shp_utm):
         print(city_shp_utm + " exists")
-        city_grid_table = "%s/%s_grid_tbl.txt" % (cityname, cityname)
+        city_grid_table = "%s/%s/%s_grid_tbl.txt" % (cities_zones_folder, cityname, cityname)
         if (not(os.path.isfile(city_grid_table)) or rerun):
             start = time()
             grid_shape(city_shp_utm, city_grid_table)
