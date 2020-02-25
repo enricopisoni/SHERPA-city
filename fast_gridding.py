@@ -90,9 +90,9 @@ def grid_shape(shp_file, output_table):
     
     # open a file for the output table
     fo = open(output_table, 'w')
-    fo.write((7 * "%s;" + "%s\n") % \
+    fo.write((8 * "%s;" + "%s\n") % \
              ( 'x_centre', 'y_centre', 'inspireid', 'functional', 'zone_name',\
-              'trafficvol', 'capcor', 'length_in_cell'))
+              'trafficvol', 'capcor', 'aadtmad', 'length_in_cell'))
     
     # loop over all roads in the shape file
     counter = 0
@@ -106,6 +106,7 @@ def grid_shape(shp_file, output_table):
         zone_name = road_dict['properties']['zone_name']
         trafficvol = road_dict['properties']['trafficvol']
         capcor = road_dict['properties']['capcor']
+        aadtmad = road_dict['properties']['aadtmad']
 
         if road_dict['geometry']['type'] == 'LineString':
             # update the counter
@@ -131,9 +132,9 @@ def grid_shape(shp_file, output_table):
         # write the results to a file
         for cell in road_cell_list:
             # print(cell)
-            fo.write("%d;%d;%s;%s;%s;%f;%f;%f\n" % \
+            fo.write("%d;%d;%s;%s;%s;%f;%f;%f;%f\n" % \
                      (cell['x'], cell['y'], inspireid, functional, zone_name,\
-                      trafficvol, capcor, cell['length_in_cell']))
+                      trafficvol, capcor, aadtmad, cell['length_in_cell']))
         
         # print the progress
         progress = floor(counter / n_roads * 10)
