@@ -16,4 +16,5 @@ create.scenario.definition <- function(scenario.template.file, city.df, cityname
   # write the scenario defintion file in the city results folder
   city.scen.def.file <- file.path(city.output.folder, paste0(cityname, "_scenario_definition.csv"))
   write.table(city.scen.def.df, file = city.scen.def.file, row.names = F, sep = ",", quote = F)
+  return(city.scen.def.file)
 }
