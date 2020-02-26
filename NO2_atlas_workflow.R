@@ -370,7 +370,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     # total number of cores minus 1
     cl <- makeCluster(min(no_cores, length(input.list)))
     print(paste0("Calculating concentrations for ", length(input.list), " scenarios in ", 
-                 cityname, " on ", no_cores, " cores."))
+                 cityname, " on ", no_cores, " core(s)."))
     # throw the runs on the cluster
     parLapply(cl, input.list, sherpacity_par)
     # stop the cluster
