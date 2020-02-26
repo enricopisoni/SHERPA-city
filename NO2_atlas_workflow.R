@@ -1,6 +1,6 @@
-#--------------------#
-# NO2 atlas workflow #
-#--------------------#
+#----------------------------#
+# Madrid Case study workflow #
+#----------------------------#
 
 # The workflow consists of the following steps
 # 1) Looking up which OTM shape files are needed to construct a shape file of the domain
@@ -223,18 +223,20 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # Step 4: Calculate fleet emission factors for all scenarios
   # ----------------------------------------------------------
   
-  # Create scenario definition file from a template
-  create.scenario.definition(scenario.template.file, city.df, cityname, fleet.year, city.output.folder)
-  # 5 columns: scenario_name,zone_name,default_fleet_country,default_fleet_year,fleet_configuration
-  scenario.definition.file <- file.path(city.output.folder, paste0(cityname, "_scenario_definition.csv"))
+  # Create scenario definition file from a template. The funtion returns the file name.
+  # Even if the file already exists it is ran again in case of an updata
+  city.scen.def.file <- create.scenario.definition(scenario.template.file, city.df, cityname, fleet.year, city.output.folder)
+  # The file 'city.scen.def.file' has 5 columns: 
+  # scenario_name,zone_name,default_fleet_country,default_fleet_year,fleet_configuration
+  
   # emission factor file
   emission.factors.file <- file.path(city.output.folder, paste0(cityname, "_emission_factors.csv"))
   
-  if (file.exists(scenario.definition.file)) {
+  if (file.exists(city.scen.def.file)) {
     if (!file.exists(emission.factors.file)) {
       # create a data frame with the emission factors to be used per
       # scenario, zone and road type
-      scenario.efs.df <- create_fleet_emission_factors(scenario.definition.file)
+      scenario.efs.df <- create_fleet_emission_factors(city.scen.def.file)
       write.table(scenario.efs.df, file = emission.factors.file, sep = ",", row.names = FALSE, quote = FALSE)
     } else {
       print(paste0("Emission factors are already calcultated for ", cityname))
@@ -306,7 +308,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     if(!(file.exists(gridded.network.file))) {
       print(paste0("No gridded network available for ", cityname, ". Run the python script."))
     }
-    if(!(file.exists(scenario.definition.file))) {
+    if(!(file.exists(city.scen.def.file))) {
       print(paste0("No scenario definitions for ", cityname))
     }
   }
