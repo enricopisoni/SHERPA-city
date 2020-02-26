@@ -224,23 +224,26 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # ----------------------------------------------------------
   
   # Create scenario definition file from a template. The funtion returns the file name.
-  # Even if the file already exists it is ran again in case of an updata
+  # Even if the file already exists it is run again in case of an updata
   city.scen.def.file <- create.scenario.definition(scenario.template.file, city.df, cityname, fleet.year, city.output.folder)
   # The file 'city.scen.def.file' has 5 columns: 
   # scenario_name,zone_name,default_fleet_country,default_fleet_year,fleet_configuration
   
-  # emission factor file
-  emission.factors.file <- file.path(city.output.folder, paste0(cityname, "_emission_factors.csv"))
-  
   if (file.exists(city.scen.def.file)) {
-    if (!file.exists(emission.factors.file)) {
+    # This if is commented, otherwise updates of the scenario file are not run.
+    #if (!file.exists(emission.factors.file)) {
       # create a data frame with the emission factors to be used per
       # scenario, zone and road type
-      scenario.efs.df <- create_fleet_emission_factors(city.scen.def.file)
-      write.table(scenario.efs.df, file = emission.factors.file, sep = ",", row.names = FALSE, quote = FALSE)
-    } else {
-      print(paste0("Emission factors are already calcultated for ", cityname))
-    }
+    
+    # calculate the emission factors per zone and road type for each scenario
+    scenario.efs.df <- create_fleet_emission_factors(city.scen.def.file)
+    
+    # write the EFs to a file emission factor file
+    emission.factors.file <- file.path(city.output.folder, paste0(cityname, "_emission_factors.csv"))
+    write.table(scenario.efs.df, file = emission.factors.file, sep = ",", row.names = FALSE, quote = FALSE)
+    # } else {
+    #   print(paste0("Emission factors are already calcultated for ", cityname))
+    # }
   } else {
     print(paste0("No scenarios available for ", cityname))
   }
@@ -271,6 +274,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
     }
     
     input.list <- list()
+    i.list <- 1
     for (i in 1:n.scenarios) {
       scenario.name <- scenario.list[i]
       # check if the emission raster is already calculated
@@ -280,18 +284,20 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
                                          paste0("emis_", pollutant, ".asc"))
       # if no raster, add scenario to the input list for the cluster
       if (!(file.exists(scen.emis.raster.file))) {
-        input.list[[i]] <- list("scenario.name" = scenario.name,
-                                "scenario.output.folder" = scenario.output.folder,
-                                "pollutant" = pollutant)
+        input.list[[i.list]] <- list("scenario.name" = scenario.name,
+                                     "scenario.output.folder" = scenario.output.folder,
+                                     "pollutant" = pollutant)
+        i.list <- i.list + 1
+        print(paste("Emission rasters will be created for scenario:", scenario.name))
       }
     }
     # if there's work to be done, set up a cluster and calculate the rastes
     # for testing create.gridded.emissions(input.list[[2]])
     if (length(input.list) > 0) {
-      # Calculate the number of cores
-      no_cores <- detectCores()
+      # Calculate the number of cores needed
+      no_cores <- min(length(input.list), detectCores() - 1)
       # Initiate cluster. Never take more cores than scenarios and one less than available on the machine
-      cl <- makeCluster(min(no_cores - 1, n.scenarios))
+      cl <- makeCluster(no_cores)
       # add common variables for all scenarios to the cluster environment
       clusterExport(cl, c("gridded.network.df", "scenario.efs.df", "results.folder",
                           "AADT.field", "emission.raster.folder"))
@@ -321,6 +327,7 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
   # config file 'NO2_atlas_config.R'.
 
   input.list <- list()
+  i.list <- 1
   n.scenarios <- length(scenario.list)
   # loop over all scenarios
   for (i in 1:n.scenarios) {
@@ -340,13 +347,15 @@ for (cityname in as.vector(city.df$cityname)) { # as.vector(city.df$cityname)
         # rasters are taken from another project.
         scenario.output.folder <- file.path(results.folder, scenario.list[i])
         if (!dir.exists(scenario.output.folder)) { dir.create(scenario.output.folder) }
-        # Add all inputs to the imput list
-        input.list[[i]] <- list("sc.config.file" = sc.config.file,
-                                "city.coords" = city.coords,
-                                "emis.raster.file" = scen.emis.raster.file,
-                                "pollutant" = if(pollutant=="NOx") {"NO2"} else {pollutant},
-                                "output.path" = scenario.output.folder,
-                                "raster.background" = raster.background)
+        # Add all inputs to the input list
+        input.list[[i.list]] <- list("sc.config.file" = sc.config.file,
+                                     "city.coords" = city.coords,
+                                     "emis.raster.file" = scen.emis.raster.file,
+                                     "pollutant" = if(pollutant=="NOx") {"NO2"} else {pollutant},
+                                     "output.path" = scenario.output.folder,
+                                     "raster.background" = raster.background)
+        i.list <- i.list + 1
+        print(paste("Concentration rasters will be created for scenario:", scenario.list[i]))
       } else {
         print(paste("Emission raster not found at:", scen.emis.raster.file))
       }
