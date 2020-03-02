@@ -67,7 +67,7 @@ AADT.field <- "aadtmad"
 rerun.domain <- FALSE
 rerun.zoning <- FALSE
 
-# Which CTM background to use, a scalar (FALSE) or a raster interpollated from the CTM data (TRUE)
+# Which CTM background to use, a scalar (FALSE) or a 20x20m raster interpollated from the CTM data (TRUE)
 raster.background <- TRUE
 
 # path to the sherpacity configuratoin file
