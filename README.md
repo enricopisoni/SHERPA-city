@@ -1,3 +1,10 @@
+# SHERPA-city methodology
+https://doi.org/10.1016/j.envsoft.2020.104904.
+B. Degraeuwe, E. Pisoni, P. Christidis, A. Christodoulou, P. Thunis,
+SHERPA-city: A web application to assess the impact of traffic measures on NO2 pollution in cities,
+Environmental Modelling & Software,
+Volume 135, 2021, 104904.
+
 # SHERPA-city
 
 This readme file guides you throught the process of setting up SHERPA-city simulations 
