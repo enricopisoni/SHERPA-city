@@ -7,7 +7,7 @@ SHERPA-city: A web application to assess the impact of traffic measures on NO2 p
 Environmental Modelling & Software,
 Volume 135, 2021, 104904.
 
-# SHERPA-city
+# SHERPA-city offline version
 
 This readme file guides you throught the process of setting up SHERPA-city simulations 
 for a whole as many cities and scenarios as you want.
